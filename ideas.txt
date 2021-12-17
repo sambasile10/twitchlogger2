@@ -1,0 +1,12 @@
+ - Buffer messages and perform batch insertion in the Postgres DB 
+     - https://www.eversql.com/how-to-optimize-slow-sql-insert/
+     - https://blog.discord.com/how-discord-stores-billions-of-messages-7fa6ec7ee4c7
+     - https://stackoverflow.com/questions/1793169/which-is-faster-multiple-single-inserts-or-one-multiple-row-insert
+
+ - Create new tables for each tracked channel
+ - Database Schema
+     - User ID as primary key
+         - https://discuss.dev.twitch.tv/t/getting-user-ids/13806
+     - Message TEXT(500)
+         - Text messages are max 500 characters
+     - Timestamp 
