@@ -31,7 +31,6 @@ export class TwitchClient {
 
             const messageObj = {
                 username: tags['display-name'],
-                timestamp: new Date(),
                 message: message
             };
         });
