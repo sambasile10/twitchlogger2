@@ -3,21 +3,28 @@ import { Logger } from 'tslog';
 
 // Extend pg-promise with custom functions for code clarity
 interface IExtensions {
-    getMessages(channel: string, username: string): Promise<any>;
+    getMessages(channel: string, userID: string): Promise<Message[]>;
     //writeMessages(channel: string, messages: Message[]): Promise<any>;
     createChannel(channel: string): Promise<void>;
 };
 
-// Message object
-interface Message {
+// Message object for end user consumption
+export declare interface Message {
     userID: string,
+    timestamp: Date,
     message: string
 };
 
+// Message object for database consumption (no timestamp)
+export declare interface DBMessage {
+    userID: string,
+    message: string
+}
+
 const options: pgPromise.IInitOptions<IExtensions> = {
     extend(obj) {
-        obj.getMessages = (channel, username) => {
-            return obj.any('SELECT * FROM $1 WHERE username = $2', [channel, username]);
+        obj.getMessages = (channel, userID) => {
+            return obj.any('SELECT * FROM $1 WHERE user_id = $2', [channel, userID]);
         }
 
         obj.createChannel = (channel) => {
@@ -30,7 +37,7 @@ const options: pgPromise.IInitOptions<IExtensions> = {
    For database performance, the DBManager will store a buffer of messages to write into the
    database at once when BUFFER_LIMIT number of messages are buffered for a given channel
 */
-const BUFFER_LIMIT: number = Number(process.env.ALLOWED_MESSAGE_BUFFER || 10);
+const BUFFER_LIMIT: number = Number(process.env.BUFFER_LIMIT || 10);
 
 export class DBManager {
 
@@ -98,9 +105,16 @@ export class DBManager {
         });
     }
 
-    queryMessages(channel: string, username: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            resolve([]); // TODO query function
+    // TODO more options - limit query, between dates, etc
+    // Query messages in database
+    queryMessages(channel: string, userID: string): Promise<Message[]> {
+        return new Promise<Message[]>((resolve, reject) => {
+            this.db.getMessages(channel, userID).then(res => {
+                resolve(res);
+            }).catch(err => {
+                this.log.error(`Failed to query messages in channel '${channel}' for user '${userID}'.`);
+                reject(err);
+            });
         });
     }
 
