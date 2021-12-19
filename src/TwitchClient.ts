@@ -23,7 +23,7 @@ export class TwitchClient {
     }
 
     // Start TMI listeners, takes DBManager write callback as parameterber
-    public listen(dbWriteCallback: (channel:string, message: DBMessage) => void): void {
+    public listen(dbWriteCallback: (channel:string, message: DBMessage, username: string) => void): void {
         this.log.debug("TMI Client Listening");
 
         // Log all messages (includes subs/cheer/etc)
@@ -37,7 +37,7 @@ export class TwitchClient {
             };
 
             // Call database write function, substring removes the '#' from the channel variable
-            dbWriteCallback(channel.substring(1), messageObj);
+            dbWriteCallback(channel.substring(1), messageObj, tags['display-name']);
         });
     }
 

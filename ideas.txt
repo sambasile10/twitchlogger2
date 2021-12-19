@@ -10,3 +10,6 @@
      - Message TEXT(500)
          - Text messages are max 500 characters
      - Timestamp 
+
+TODO:
+    - Create buffer system for writing to the user_ids table
