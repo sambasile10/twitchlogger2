@@ -1,0 +1,19 @@
+services:
+  logger:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    env_file: .env
+    ports:
+      - "3000:3000"
+  
+  db:
+    image: "postgres"
+    env_file: .env
+    volumes:
+      - chat_db:/var/lib/postgresql/data/
+
+volumes:
+  chat_db: {}

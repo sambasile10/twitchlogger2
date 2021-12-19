@@ -1,4 +1,5 @@
 import pgPromise, { ColumnSet } from 'pg-promise';
+import { IConnectionParameters } from 'pg-promise/typescript/pg-subset';
 import { ILogLevel, Logger } from 'tslog';
 
 // Extend pg-promise with custom functions for code clarity
@@ -20,6 +21,15 @@ export declare interface DBMessage {
     userID: string,
     message: string
 }
+
+// Postgres configuration for dev environment
+const dev_dbConfig = {
+    host: 'db',
+    port: '5432',
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
+};
 
 const options: pgPromise.IInitOptions<IExtensions> = {
     extend(obj) {
@@ -45,7 +55,7 @@ export class DBManager {
 
     // Database connection
     private pgp = pgPromise(options);
-    private db = this.pgp(process.env.POSTGRES_URL); // Load database URL from environment
+    private db; // Load database URL from environment
 
     // Message Buffer <channel name, message array>
     private messageBuffer: Map<string, Message[]>; 
@@ -55,6 +65,16 @@ export class DBManager {
 
     // Initialize DBManager with list of channels
     constructor() {
+        // Initialize database connection
+        const isProduction: boolean = (process.env.NODE_ENV === 'production');
+        const dbConfig = (isProduction ? process.env.DATABASE_URL : dev_dbConfig); // Check build environment
+        if(process.env.NODE_ENV === 'production') {
+            // Change SSL default if in production
+            this.pgp.pg.defaults.ssl = { rejectUnauthorized: false };
+        }
+
+        this.db = this.pgp(dbConfig as IConnectionParameters);
+
         // Initialize messsage buffer
         this.messageBuffer = new Map<string, Message[]>();
 
