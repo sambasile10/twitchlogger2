@@ -13,9 +13,10 @@ ConfigManager.readConfig();
 
 // Load helper classes
 let dbManager: DBManager = new DBManager();
-dbManager.init();
-let chatClient: TwitchClient = new TwitchClient();
-chatClient.listen(dbManager.writeMessage); // Start chat client with db callback
+dbManager.init().then(res => {
+    let chatClient: TwitchClient = new TwitchClient();
+    chatClient.listen(dbManager.writeMessage.bind(dbManager)); // Start chat client with db callback
+});
 
 app.get("/", (req, res) => {
 

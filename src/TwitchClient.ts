@@ -32,7 +32,7 @@ export class TwitchClient {
 
             // Construct object to send to database
             const messageObj: DBMessage = {
-                userID: tags['user-id'],
+                user_id: tags['user-id'],
                 message: message
             };
 

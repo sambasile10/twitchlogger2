@@ -19,7 +19,7 @@ export declare interface Message {
 
 // Message object for database consumption (no timestamp)
 export declare interface DBMessage {
-    userID: string,
+    user_id: string,
     message: string
 }
 
@@ -87,13 +87,13 @@ export class DBManager {
         for await (const channel of ConfigManager.config.channels) {
             await this.addChannel(channel);
         }
+        this.log.info("Initialized DBManager!");
     }
 
     // Add channel to database
     async addChannel(channel: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // Create channel table if it doesn't exist
-            this.log.debug(channel);
             this.db.createChannel(channel).then(res => {
                 this.messageBuffer.set(channel, []); // Create new buffer for channel
                 this.columnSets.set(channel, new this.pgp.helpers.ColumnSet([ 'user_id', 'message' ], { table: channel })); // Create ColumnSet
@@ -107,15 +107,21 @@ export class DBManager {
     }
 
     // Add message to buffer, write if buffer limit is reached
-    writeMessage(channel: string, message: Message): void {
-        // Add message to buffer
-        this.messageBuffer.get(channel).push(message);
+    async writeMessage(channel: string, message: Message): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // Add message to buffer
+            //this.log.debug(`Writing message from ${message.userID} to ${channel}.`);
+            this.messageBuffer.get(channel).push(message);
 
-        // Check buffer size
-        if(this.messageBuffer.get(channel).length >= BUFFER_LIMIT) {
-            // Buffer limit execeeded, flush to database
-            this.writeBuffer(channel);
-        }
+            // Check buffer size
+            if(this.messageBuffer.get(channel).length >= BUFFER_LIMIT) {
+                // Buffer limit execeeded, flush to database
+                this.writeBuffer(channel);
+            }
+
+            resolve();
+        });
+        
     }
 
     // Flush buffer for a given channel to database
