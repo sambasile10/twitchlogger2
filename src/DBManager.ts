@@ -1,6 +1,7 @@
 import pgPromise, { ColumnSet } from 'pg-promise';
 import { IConnectionParameters } from 'pg-promise/typescript/pg-subset';
 import { ILogLevel, Logger } from 'tslog';
+import { ConfigManager } from './Config';
 
 // Extend pg-promise with custom functions for code clarity
 interface IExtensions {
@@ -38,7 +39,7 @@ const options: pgPromise.IInitOptions<IExtensions> = {
         }
 
         obj.createChannel = (channel) => {
-            return obj.none('CREATE TABLE IF NOT EXISTS $1 ( id SERAL, user_id VARCHAR(10), message VARCHAR(500), PRIMARY KEY(id) ); ');
+            return obj.none(`CREATE TABLE IF NOT EXISTS ${channel} ( id SERIAL, user_id VARCHAR(10), message VARCHAR(500), PRIMARY KEY(id) ); `);
         }
     }
 };
@@ -63,8 +64,10 @@ export class DBManager {
     // pgp ColumnSets, generated once - defines columns in a table
     private columnSets: Map<String, pgPromise.ColumnSet>;
 
-    // Initialize DBManager with list of channels
-    constructor() {
+    constructor() {}
+
+    // Initialize DBManager, this function is blocking
+    public async init(): Promise<void> {
         // Initialize database connection
         const isProduction: boolean = (process.env.NODE_ENV === 'production');
         const dbConfig = (isProduction ? process.env.DATABASE_URL : dev_dbConfig); // Check build environment
@@ -80,15 +83,20 @@ export class DBManager {
 
         // Initialize column sets
         this.columnSets = new Map<string, ColumnSet>();
+
+        for await (const channel of ConfigManager.config.channels) {
+            await this.addChannel(channel);
+        }
     }
 
     // Add channel to database
-    addChannel(channel: string): Promise<void> {
+    async addChannel(channel: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // Create channel table if it doesn't exist
+            this.log.debug(channel);
             this.db.createChannel(channel).then(res => {
                 this.messageBuffer.set(channel, []); // Create new buffer for channel
-                this.columnSets.set(channel, new pgPromise.ColumnSet([ 'user_id', 'message' ], { table: channel })); // Create ColumnSet
+                this.columnSets.set(channel, new this.pgp.helpers.ColumnSet([ 'user_id', 'message' ], { table: channel })); // Create ColumnSet
                 this.log.info(`Registered channel '${channel}' with database.`);
                 resolve();
             }).catch(err => {

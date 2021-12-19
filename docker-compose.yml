@@ -1,7 +1,8 @@
 services:
   logger:
+    container_name: logger
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile
     depends_on:
       - db

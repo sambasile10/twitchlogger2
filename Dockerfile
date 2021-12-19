@@ -12,4 +12,4 @@ ADD . /usr/src/app
 RUN npx tsc
 
 # Run start script
-CMD [ "npm", "run", "start" ]
+CMD [ "node", "src/server.js" ]

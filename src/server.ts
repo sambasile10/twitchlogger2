@@ -13,6 +13,7 @@ ConfigManager.readConfig();
 
 // Load helper classes
 let dbManager: DBManager = new DBManager();
+dbManager.init();
 let chatClient: TwitchClient = new TwitchClient();
 chatClient.listen(dbManager.writeMessage); // Start chat client with db callback
 
