@@ -1,5 +1,5 @@
 import pgPromise, { ColumnSet } from 'pg-promise';
-import { Logger } from 'tslog';
+import { ILogLevel, Logger } from 'tslog';
 
 // Extend pg-promise with custom functions for code clarity
 interface IExtensions {
@@ -54,7 +54,7 @@ export class DBManager {
     private columnSets: Map<String, pgPromise.ColumnSet>;
 
     // Initialize DBManager with list of channels
-    constructor(channels: string[]) {
+    constructor() {
         // Initialize messsage buffer
         this.messageBuffer = new Map<string, Message[]>();
 

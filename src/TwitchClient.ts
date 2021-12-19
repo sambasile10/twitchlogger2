@@ -1,5 +1,6 @@
 import * as tmi from 'tmi.js';
 import { Logger } from 'tslog';
+import { DBMessage } from './DBManager';
 
 export class TwitchClient {
 
@@ -21,18 +22,22 @@ export class TwitchClient {
         this.client.connect();
     }
 
-    // Start TMI listeners
-    private listen(): void {
+    // Start TMI listeners, takes DBManager write callback as parameterber
+    public listen(dbWriteCallback: (channel:string, message: DBMessage) => void): void {
         this.log.debug("TMI Client Listening");
 
         // Log all messages (includes subs/cheer/etc)
         this.client.on("message", (channel, tags, message, self) => {
             if(self) { return; } // Don't record bot's own activity
 
-            const messageObj = {
-                username: tags['display-name'],
+            // Construct object to send to database
+            const messageObj: DBMessage = {
+                userID: tags['user-id'],
                 message: message
             };
+
+            // Call database write function, substring removes the '#' from the channel variable
+            dbWriteCallback(channel.substring(1), messageObj);
         });
     }
 
