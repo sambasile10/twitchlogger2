@@ -2,7 +2,7 @@ import express from 'express';
 import { DBManager } from './DBManager';
 import * as dotenv from "dotenv";
 import { ConfigManager } from './Config';
-import { TwitchClient } from './ChatClient';
+import { ChatClient } from './ChatClient';
 
 // Load environment
 dotenv.config({ path: __dirname+'/.env' });
@@ -14,7 +14,7 @@ ConfigManager.readConfig();
 // Load helper classes
 let dbManager: DBManager = new DBManager();
 dbManager.init().then(res => {
-    let chatClient: TwitchClient = new TwitchClient();
+    let chatClient: ChatClient = new ChatClient();
     chatClient.listen(dbManager.writeMessage.bind(dbManager)); // Start chat client with db callback
 });
 

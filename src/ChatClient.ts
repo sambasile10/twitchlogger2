@@ -2,14 +2,14 @@ import * as tmi from 'tmi.js';
 import { Logger } from 'tslog';
 import { DBMessage } from './DBManager';
 
-export class TwitchClient {
+export class ChatClient {
 
     private log: Logger;
     private client: tmi.Client;
 
     // Build TMI client and connect
     constructor() {
-        this.log = new Logger({ name: "TwitchClient" });
+        this.log = new Logger({ name: "ChatClient" });
         this.client = new tmi.Client({
             options: { debug: true }, // TODO move client options
             connection: {
