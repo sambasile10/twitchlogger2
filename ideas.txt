@@ -13,3 +13,5 @@
 
 TODO:
     - Create buffer system for writing to the user_ids table
+    - Change user_id to a numerical type 
+        - Comparing numericals is much faster than comparing strings

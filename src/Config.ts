@@ -3,7 +3,10 @@ import { Logger } from 'tslog';
 
 // TODO remove optional from properties
 export declare interface Config {
-    channels?: string[] // Channels to be tracked
+    channels?: string[], // Channels to be tracked
+    client_authorization?: string, // OAuth Bearer token, this is dynamic
+    client_id?: string // ID of application on Twitch API
+    client_secret?: string // Secret of application on Twitch API
 }
 
 // Read config path from environment

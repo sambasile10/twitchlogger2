@@ -2,7 +2,7 @@ import express from 'express';
 import { DBManager } from './DBManager';
 import * as dotenv from "dotenv";
 import { ConfigManager } from './Config';
-import { TwitchClient } from './TwitchClient';
+import { TwitchClient } from './ChatClient';
 
 // Load environment
 dotenv.config({ path: __dirname+'/.env' });

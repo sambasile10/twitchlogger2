@@ -22,7 +22,13 @@ export declare interface Message {
 export declare interface DBMessage {
     user_id: string,
     message: string
-}
+};
+
+// User ID tuple for writing to the database
+export declare interface UserTuple {
+    username: string,
+    user_id: string
+};
 
 // Postgres configuration for dev environment
 const dev_dbConfig = {
@@ -69,6 +75,9 @@ export class DBManager {
 
     // Message Buffer <channel name, message array>
     private messageBuffer: Map<string, DBMessage[]>; 
+
+    // Identity Buffer, tracked across channels
+    // private identityBuffer: UserTuple[];
 
     // pgp ColumnSets, generated once - defines columns in a table
     private columnSets: Map<String, pgPromise.ColumnSet>;
