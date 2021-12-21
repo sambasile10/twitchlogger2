@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { resolve } from 'path/posix';
 import { Logger } from 'tslog';
 
 // TODO remove optional from properties
@@ -28,24 +29,20 @@ export class ConfigManager {
         this.log.debug(`Read config file '${CONFIG_PATH}'.`);
     }
 
-    public static async update(): Promise<void> {
-        let configData = JSON.stringify(ConfigManager.config);
-        fs.writeFile(CONFIG_PATH, configData, (err) => {
-            if(err) {
-                this.log.warn(`Failed to write configuration to '${CONFIG_PATH}'. Error: ${JSON.stringify(err)}`);
-            }
+    // Write config memory object to file
+    public static async notifyUpdate(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let configData = JSON.stringify(ConfigManager.config);
+            fs.writeFile(CONFIG_PATH, configData, (err) => {
+                if(err) {
+                    this.log.warn(`Failed to write configuration to '${CONFIG_PATH}'. Error: ${JSON.stringify(err)}`);
+                    reject(err);
+                } else {
+                    this.log.debug(`Successfully updated configuration.`);
+                    resolve();
+                }
+            });
         });
-    }
-
-    // Write config object in memory to file
-    public static notifyUpdate(): void {
-        try {
-            let configData = JSON.stringify(ConfigManager.config)
-            fs.writeFileSync(CONFIG_PATH, configData);
-            this.log.debug("Updated configuration with file system.");
-        } catch (error) {
-            this.log.warn(`Failed to write configuration to '${CONFIG_PATH}'.`);
-        }
     }
 
 }
