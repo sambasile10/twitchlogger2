@@ -23,6 +23,32 @@ export class ChatClient {
         this.client.connect();
     }
 
+    // Add a channel to connect to
+    public async joinChannel(channel: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.client.join(channel).then(res => {
+                this.log.info(`TMI joined channel '${channel}'.`);
+                resolve();
+            }).catch(err => {
+                this.log.error(`TMI failed to join channel '${channel}'. Error: ${JSON.stringify(err)}.`);
+                reject(err);
+            });
+        });
+    }
+
+    // Leave a channel
+    public async leaveChannel(channel: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.client.part(channel).then(res => {
+                this.log.info(`TMI left channel '${channel}'.`);
+                resolve();
+            }).catch(err => {
+                this.log.warn(`TMI failed to leave channel '${channel}'. Error: ${JSON.stringify(err)}.`);
+                reject(err);
+            });
+        });
+    }
+
     // Start TMI listeners, takes DBManager write callback as parameterber
     public listen(dbWriteCallback: (channel:string, message: DBMessage) => void): void {
         this.log.debug("TMI Client Listening");
