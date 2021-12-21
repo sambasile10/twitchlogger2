@@ -68,7 +68,6 @@ export class TwitchClient {
         return new Promise<UserData>((resolve, reject) => {
             let config = { // Headers
                 headers: {
-                    // Authorization: Bearer 3pygp5hvkvy2a6uxneqs2ninehev6s
                     'Authorization': `Bearer ${ConfigManager.config.client_authorization}`,
                     'Client-ID': `${ConfigManager.config.client_id}`
                 }

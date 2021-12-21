@@ -28,6 +28,15 @@ export class ConfigManager {
         this.log.debug(`Read config file '${CONFIG_PATH}'.`);
     }
 
+    public static async update(): Promise<void> {
+        let configData = JSON.stringify(ConfigManager.config);
+        fs.writeFile(CONFIG_PATH, configData, (err) => {
+            if(err) {
+                this.log.warn(`Failed to write configuration to '${CONFIG_PATH}'. Error: ${JSON.stringify(err)}`);
+            }
+        });
+    }
+
     // Write config object in memory to file
     public static notifyUpdate(): void {
         try {
