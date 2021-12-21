@@ -111,8 +111,8 @@ export class DBManager {
         await this.db.none(`CREATE TABLE IF NOT EXISTS user_ids ( username VARCHAR(25), user_id VARCHAR(10), PRIMARY KEY(username) ); `)
 
         // Testing remove this
-        var all_ids = await this.db.any(`SELECT * FROM user_ids;`);
-        this.log.info(all_ids);
+        //var all_ids = await this.db.any(`SELECT * FROM user_ids;`);
+        //this.log.info(all_ids);
 
         this.log.info("Initialized DBManager!");
     }
@@ -171,7 +171,14 @@ export class DBManager {
 
     // TODO more options - limit query, between dates, etc
     // Query messages in database
-    async queryMessages(channel: string, username: string): Promise<Message[]> {
+    async queryMessages(channel: string, user_id: string): Promise<Message[]> {
+        return new Promise<Message[]>((resolve, reject) => {
+
+        });
+    }
+
+
+    async queryMessages_old(channel: string, username: string): Promise<Message[]> {
         return new Promise<Message[]>((resolve, reject) => {
             // Get user ID for given username
             this.db.getUserID(username).then(res => {

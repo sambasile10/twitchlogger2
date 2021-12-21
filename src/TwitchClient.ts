@@ -64,31 +64,53 @@ export class TwitchClient {
     }
 
     // Fetch user data from a given username
-    async fetchUserData(username: string): Promise<UserData> {
+    async fetchUserData(username: string, fetch_token: boolean): Promise<UserData> {
         return new Promise<UserData>((resolve, reject) => {
+            let config = { // Headers
+                headers: {
+                    // Authorization: Bearer 3pygp5hvkvy2a6uxneqs2ninehev6s
+                    'Authorization': `Bearer ${ConfigManager.config.client_authorization}`,
+                    'Client-ID': `${ConfigManager.config.client_id}`
+                }
+            };
+            this.log.debug(JSON.stringify(config));
+
             axios.get(
                 `https://api.twitch.tv/helix/users?login=${username}`,
-                { // Configuration, include auth headers
-                    headers: {
-                        'Authorization': `Bearer: ${ConfigManager.config.client_authorization}`,
-                        'Client-ID': `${ConfigManager.config.client_id}`
-                    }
-                }
+                config // Include config
             ).then(res => {
                 // Cast GET response to our object, response is returned as array
-                let userData: UserData = (res.data as GetUsersResponse)[0];
+                this.log.debug(JSON.stringify(res.data));
+                let userData: UserData = (res.data!.data as GetUsersResponse)[0];
                 this.log.debug(`Fetched user data for '${username}' with user ID: '${userData.id}'`);
                 resolve(userData);
             }).catch(err => {
+                this.log.debug(JSON.stringify(err));
                 // Handle fetch error, if the response status is 401 (unauthorized) then fetch a new bearer token
                 this.log.error(`Failed to fetch user data for '${username}' with status: ${err.response!.status}.`);
-                if(err.response!.status === 401) {
+                this.log.debug(JSON.stringify(err.response!.data));
+                if(err.response!.status === 401 && fetch_token) {
                     // Fetch new bearer token
                     this.log.info("Fetching new bearer token...");
                     this.fetchBearerToken();
                 }
 
                 reject(err);
+            });
+        });
+    }
+
+    // Test API connection, returns true if connection works
+    async checkAPIConnection(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.fetchUserData('twitch', false) // Try to get user data for 'twitch'
+            .then(res => {
+                // Successfully fetched data
+                this.log.info("Connected to Twitch API successfully.");
+                resolve(true);
+            }).catch(err => {
+                this.log.error("Failed to connect to Twitch API.");
+                resolve(false);
             });
         });
     }
