@@ -73,14 +73,12 @@ export class TwitchClient {
                     'Client-ID': `${ConfigManager.config.client_id}`
                 }
             };
-            this.log.debug(JSON.stringify(config));
 
             axios.get(
                 `https://api.twitch.tv/helix/users?login=${username}`,
                 config // Include config
             ).then(res => {
                 // Cast GET response to our object, response is returned as array
-                this.log.debug(JSON.stringify(res.data));
                 let userData: UserData = (res.data!.data as GetUsersResponse)[0];
                 this.log.debug(`Fetched user data for '${username}' with user ID: '${userData.id}'`);
                 resolve(userData);
@@ -88,7 +86,6 @@ export class TwitchClient {
                 this.log.debug(JSON.stringify(err));
                 // Handle fetch error, if the response status is 401 (unauthorized) then fetch a new bearer token
                 this.log.error(`Failed to fetch user data for '${username}' with status: ${err.response!.status}.`);
-                this.log.debug(JSON.stringify(err.response!.data));
                 if(err.response!.status === 401 && fetch_token) {
                     // Fetch new bearer token
                     this.log.info("Fetching new bearer token...");

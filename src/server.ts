@@ -27,7 +27,7 @@ twitchClient.checkAPIConnection().then(res => {}); // TODO complete promise
 
 // Query chat logs in a given channel
 app.get("/chat/:channel/", (req, res) => {
-    let channel: string = req.params.channel; // Channel to query in
+    let channel: string = req.params.channel.toLowerCase(); // Channel to query in
     let username: string = String(req.query.username); // Username of user to search for
     res.setHeader('Content-Type', 'application/json');
 

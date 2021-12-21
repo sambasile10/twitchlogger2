@@ -7,14 +7,12 @@ import { ConfigManager } from './Config';
 interface IExtensions {
     getMessages(channel: string, userID: string): Promise<Message[]>;
     createChannel(channel: string): Promise<void>;
-    getUserID(username: string): Promise<any>;
-    setUserID(username: string, userID: string): Promise<void>;
 };
 
 // Message object for end user consumption
 export declare interface Message {
     userID: string,
-    timestamp: Date,
+    timestamp: string,
     message: string
 };
 
@@ -46,15 +44,7 @@ const options: pgPromise.IInitOptions<IExtensions> = {
         }
 
         obj.createChannel = (channel) => {
-            return obj.none(`CREATE TABLE IF NOT EXISTS ${channel} ( id SERIAL, user_id VARCHAR(10), message VARCHAR(500), PRIMARY KEY(id) ); `);
-        }
-
-        obj.getUserID = (username) => {
-            return obj.one(`SELECT user_id FROM user_ids WHERE username LIKE '${username}';`);
-        }
-
-        obj.setUserID = (username, userID) => {
-            return obj.none(`INSERT INTO user_ids (username,user_id) VALUES ('${username}','${userID}') ON CONFLICT DO NOTHING;`);
+            return obj.none(`CREATE TABLE IF NOT EXISTS ${channel} ( id SERIAL, user_id VARCHAR(10), timestamp TIMESTAMP NOT NULL DEFAULT NOW(), message VARCHAR(500), PRIMARY KEY(id) ); `);
         }
     }
 };
@@ -75,9 +65,6 @@ export class DBManager {
 
     // Message Buffer <channel name, message array>
     private messageBuffer: Map<string, DBMessage[]>; 
-
-    // Identity Buffer, tracked across channels
-    // private identityBuffer: UserTuple[];
 
     // pgp ColumnSets, generated once - defines columns in a table
     private columnSets: Map<String, pgPromise.ColumnSet>;
@@ -104,15 +91,8 @@ export class DBManager {
 
         // Add all channels to database
         for await (const channel of ConfigManager.config.channels) {
-            await this.addChannel(channel);
+            await this.addChannel(channel.toLowerCase());
         }
-
-        // Create user IDs table if it doesn't exist
-        await this.db.none(`CREATE TABLE IF NOT EXISTS user_ids ( username VARCHAR(25), user_id VARCHAR(10), PRIMARY KEY(username) ); `)
-
-        // Testing remove this
-        //var all_ids = await this.db.any(`SELECT * FROM user_ids;`);
-        //this.log.info(all_ids);
 
         this.log.info("Initialized DBManager!");
     }
@@ -139,9 +119,6 @@ export class DBManager {
             // Add message to buffer
             //this.log.debug(`Writing message from ${message.userID} to ${channel}.`);
             this.messageBuffer.get(channel).push(message);
-
-            // TODO buffer system for user_ids table
-            this.db.setUserID(username, message.user_id);
 
             // Check buffer size
             if(this.messageBuffer.get(channel).length >= BUFFER_LIMIT) {
@@ -173,25 +150,10 @@ export class DBManager {
     // Query messages in database
     async queryMessages(channel: string, user_id: string): Promise<Message[]> {
         return new Promise<Message[]>((resolve, reject) => {
-
-        });
-    }
-
-
-    async queryMessages_old(channel: string, username: string): Promise<Message[]> {
-        return new Promise<Message[]>((resolve, reject) => {
-            // Get user ID for given username
-            this.db.getUserID(username).then(res => {
-                // Then get messages for that ID
-                this.log.info("userID: " + JSON.stringify(res));
-                this.db.getMessages(channel, res.user_id).then(res => {
-                    resolve(res);
-                }).catch(err => {
-                    this.log.error(`Failed to query messages in channel '${channel}' for user '${username}' with user ID '${res}'.`);
-                    reject(err);
-                });
+            this.db.getMessages(channel, user_id).then(res => {
+                resolve(res);
             }).catch(err => {
-                this.log.warn(`Failed to find user ID for given user '${username}'.`);
+                this.log.error(`Failed to query messages in channel '${channel}' for user with ID '${user_id}'.`);
                 reject(err);
             });
         });

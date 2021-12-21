@@ -1,5 +1,6 @@
 import * as tmi from 'tmi.js';
 import { Logger } from 'tslog';
+import { ConfigManager } from './Config';
 import { DBMessage } from './DBManager';
 
 export class ChatClient {
@@ -16,7 +17,7 @@ export class ChatClient {
                 reconnect: true,
                 secure: true
             },
-            channels: [ 'sodapoppin' ]
+            channels: ConfigManager.config.channels
         });
 
         this.client.connect();

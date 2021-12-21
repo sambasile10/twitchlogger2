@@ -24,7 +24,6 @@ export class ConfigManager {
         let rawText = fs.readFileSync(CONFIG_PATH).toString(); // Note: blocks execution
         ConfigManager.config = JSON.parse(rawText) as Config;
         this.log.debug(`Read config file '${CONFIG_PATH}'.`);
-        this.log.debug(JSON.stringify(ConfigManager.config)); // TODO remove this
     }
 
     // Write config object in memory to file
