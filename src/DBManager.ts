@@ -113,6 +113,33 @@ export class DBManager {
         });
     }
 
+    // Remove channel from database, if drop_table then the data will be deleted
+    async removeChannel(channel: string, drop_table: boolean): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let onRemove = () => {
+                // Remove buffer and column set
+                this.messageBuffer.delete(channel);
+                this.columnSets.delete(channel);
+            };
+            
+            if(drop_table) {
+                // Drop table from database
+                this.db.none(`DROP TABLE IF EXISTS ${channel};`).then(res => {
+                    this.log.info(`Dropped table by name '${channel}'.`);
+                    onRemove(); // On success remove associated data
+                    resolve();
+                }).catch(err => {
+                    this.log.warn(`Failed to drop by name '${channel}'.`);
+                    reject(err);
+                });
+            } else {
+                onRemove(); // Delete buffer and column set
+                this.log.info(`Dropped '${channel}' without dropping table.`);
+                resolve(); // Don't delete data, just resolve
+            }
+        });
+    }
+
     // Add message to buffer, write if buffer limit is reached
     async writeMessage(channel: string, message: DBMessage): Promise<void> {
         return new Promise<void>((resolve, reject) => {

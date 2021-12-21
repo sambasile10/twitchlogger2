@@ -94,6 +94,51 @@ app.post("/chat/:channel", (req, res) => {
     }).catch(err => { onError(err); })
 })
 
+// Remove a channel from the configuration
+app.delete("/chat/:channel", (req, res) => {
+    let channel: string = req.params.channel.toLowerCase();
+    let drop_data: boolean = (String(req.query.drop_data) == "true");
+
+    // Check if channel is in configuration
+    if(ConfigManager.config.channels.includes(channel) == false) {
+        // Channel is not in config, return error
+        res.status(400);
+        res.end(JSON.stringify({
+            error: `Channel '${channel}' is not in the configuration.`
+        }));
+    }
+
+    // Anonymous function to be called on error
+    const onError = (err) => {
+        // Add channel back to config
+        ConfigManager.config.channels.push(channel);
+        ConfigManager.notifyUpdate();
+
+        // Send error
+        res.status(500);
+        res.end(JSON.stringify({
+            error: err
+        }));
+    };
+
+    // Called on success
+    const onSuccess = () => {
+        res.sendStatus(200);
+    };
+
+    // First leave the channel chat
+    chatClient.leaveChannel(channel).then(res => {
+        // Secondly tell the DBManager
+        dbManager.removeChannel(channel, drop_data).then(res => {
+            // Finally update the config
+            ConfigManager.config.channels.splice(ConfigManager.config.channels.indexOf(channel), 1);
+            ConfigManager.notifyUpdate().then(res => {
+                onSuccess();
+            }).catch(err => { onError(err); })
+        }).catch(err => { onError(err); })
+    }).catch(err => { onError(err); })
+});
+
 const server = app.listen(process.env.PORT || 3000, () => {
     console.log(`Express running → PORT ${server.address()}`);
 });
