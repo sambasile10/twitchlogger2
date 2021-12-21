@@ -25,7 +25,8 @@ declare interface GetUsersResponse {
     data: UserData[]
 }
 
-declare interface UserData {
+// Returned user data
+export declare interface UserData {
     id: string, // User ID
     login?: string,
     display_name?: string,

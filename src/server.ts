@@ -27,27 +27,35 @@ twitchClient.checkAPIConnection().then(res => {}); // TODO complete promise
 
 // Query chat logs in a given channel
 app.get("/chat/:channel/", (req, res) => {
+    const metrics_start = performance.now(); // Start metrics timer
     let channel: string = req.params.channel.toLowerCase(); // Channel to query in
     let username: string = String(req.query.username); // Username of user to search for
     res.setHeader('Content-Type', 'application/json');
+
+    // Called on error, send metrics along with error
+    const onError = (err) => {
+        const duration = performance.now() - metrics_start; // Stop metrics
+
+        // Send error
+        res.status(401);
+        res.end(JSON.stringify({ metrics: { duration: duration }, error: err }));
+    };
 
     // Fetch user data from given username
     twitchClient.fetchUserData(username, false).then(user_data => {
         // Call DBManager to query with given options
         dbManager.queryMessages(channel, user_data.id).then(messages => {
-            // Respond with Messages[] response as JSON
+            const duration = performance.now() - metrics_start; // Calculate duration
+            const response = { // Build response
+                metrics: { duration: duration },
+                userdata: user_data,
+                messages: messages
+            };
+            
             res.status(200);
-            res.end(JSON.stringify(messages));
-        }).catch(err => {
-            // Respond with error
-            res.status(401);
-            res.end(JSON.stringify({ error: err }));
-        });
-    }).catch(err => {
-        // Respond with error
-        res.status(401);
-        res.end(JSON.stringify({ error: err }));
-    });
+            res.end(JSON.stringify(response));
+        }).catch(err => { onError(err); });
+    }).catch(err => { onError(err); });
 });
 
 // Add a channel to the configuration
