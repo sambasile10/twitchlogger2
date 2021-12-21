@@ -114,7 +114,7 @@ export class DBManager {
     }
 
     // Add message to buffer, write if buffer limit is reached
-    async writeMessage(channel: string, message: DBMessage, username: string): Promise<void> {
+    async writeMessage(channel: string, message: DBMessage): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // Add message to buffer
             //this.log.debug(`Writing message from ${message.userID} to ${channel}.`);

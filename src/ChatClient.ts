@@ -12,19 +12,19 @@ export class ChatClient {
     constructor() {
         this.log = new Logger({ name: "ChatClient" });
         this.client = new tmi.Client({
-            options: { debug: true }, // TODO move client options
+            options: { },
             connection: {
                 reconnect: true,
                 secure: true
             },
             channels: ConfigManager.config.channels
-        });
+        })
 
         this.client.connect();
     }
 
     // Start TMI listeners, takes DBManager write callback as parameterber
-    public listen(dbWriteCallback: (channel:string, message: DBMessage, username: string) => void): void {
+    public listen(dbWriteCallback: (channel:string, message: DBMessage) => void): void {
         this.log.debug("TMI Client Listening");
 
         // Log all messages (includes subs/cheer/etc)
@@ -38,7 +38,7 @@ export class ChatClient {
             };
 
             // Call database write function, substring removes the '#' from the channel variable
-            dbWriteCallback(channel.substring(1), messageObj, tags['display-name']);
+            dbWriteCallback(channel.substring(1), messageObj);
         });
     }
 

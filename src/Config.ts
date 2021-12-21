@@ -7,6 +7,7 @@ export declare interface Config {
     client_authorization?: string, // OAuth Bearer token, this is dynamic
     client_id?: string // ID of application on Twitch API
     client_secret?: string // Secret of application on Twitch API
+    tmi_debug?: boolean // Log level of tmi.js client
 }
 
 // Read config path from environment
@@ -23,6 +24,7 @@ export class ConfigManager {
     public static readConfig(): void {
         let rawText = fs.readFileSync(CONFIG_PATH).toString(); // Note: blocks execution
         ConfigManager.config = JSON.parse(rawText) as Config;
+        this.log.debug(`TMI Debug: ${ConfigManager.config.tmi_debug}`);
         this.log.debug(`Read config file '${CONFIG_PATH}'.`);
     }
 
