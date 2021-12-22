@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import { resolve } from 'path/posix';
 import { Logger } from 'tslog';
 
 // TODO remove optional from properties
@@ -32,6 +31,10 @@ export class ConfigManager {
     // Write config memory object to file
     public static async notifyUpdate(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            for(let i=0; i < ConfigManager.config.channels.length; i++) { // TODO stanitize elsewhere 
+                ConfigManager.config.channels[i] = ConfigManager.config.channels[i].replace('#','');
+            }
+
             let configData = JSON.stringify(ConfigManager.config);
             fs.writeFile(CONFIG_PATH, configData, (err) => {
                 if(err) {

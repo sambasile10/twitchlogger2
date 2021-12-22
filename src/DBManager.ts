@@ -1,3 +1,4 @@
+import { channel } from 'diagnostics_channel';
 import pgPromise, { ColumnSet } from 'pg-promise';
 import { IConnectionParameters } from 'pg-promise/typescript/pg-subset';
 import { ILogLevel, Logger } from 'tslog';
@@ -7,6 +8,7 @@ import { ConfigManager } from './Config';
 interface IExtensions {
     getMessages(channel: string, userID: string): Promise<Message[]>;
     createChannel(channel: string): Promise<void>;
+    sizeOfTable(table: string): Promise<string>;
 };
 
 // Message object for end user consumption
@@ -20,12 +22,6 @@ export declare interface Message {
 export declare interface DBMessage {
     user_id: string,
     message: string
-};
-
-// User ID tuple for writing to the database
-export declare interface UserTuple {
-    username: string,
-    user_id: string
 };
 
 // Postgres configuration for dev environment
@@ -45,6 +41,10 @@ const options: pgPromise.IInitOptions<IExtensions> = {
 
         obj.createChannel = (channel) => {
             return obj.none(`CREATE TABLE IF NOT EXISTS ${channel} ( id SERIAL, user_id VARCHAR(10), timestamp TIMESTAMP NOT NULL DEFAULT NOW(), message VARCHAR(500), PRIMARY KEY(id) ); `);
+        }
+
+        obj.sizeOfTable = (table) => {
+            return obj.one(`SELECT pg_total_relation_size('${table}');`)
         }
     }
 };
@@ -181,6 +181,30 @@ export class DBManager {
                 resolve(res);
             }).catch(err => {
                 this.log.error(`Failed to query messages in channel '${channel}' for user with ID '${user_id}'.`);
+                reject(err);
+            });
+        });
+    }
+
+    // Get size of all tables in database, returned as tuples
+    async calculateDatabaseSize(): Promise<[string, number][]> {
+        return new Promise<[string, number][]>((resolve, reject) => {
+            // Build promise array
+            let tasks: Promise<number>[] = [];
+            ConfigManager.config.channels.forEach(channel => {
+                tasks.push(this.db.sizeOfTable(channel.replace('#','')));
+            });
+
+            // Execute promises and fill tuples with data
+            let tuples: [string, number][] = [];
+            Promise.all(tasks).then(res => {
+                ConfigManager.config.channels.forEach((channel, index) => {
+                    tuples.push([channel, res[index]]); // Push tuple of (name, size)
+                });
+                this.log.debug(`Successly size queried ${res.length} tables.`);
+                resolve(tuples);
+            }).catch(err => {
+                this.log.warn(`Failed to query table sizes.`);
                 reject(err);
             });
         });

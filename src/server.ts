@@ -51,7 +51,7 @@ app.get("/chat/:channel/", (req, res) => {
                 userdata: user_data,
                 messages: messages
             };
-            
+
             res.status(200);
             res.end(JSON.stringify(response));
         }).catch(err => { onError(err); });
@@ -145,6 +145,18 @@ app.delete("/chat/:channel", (req, res) => {
             }).catch(err => { onError(err); })
         }).catch(err => { onError(err); })
     }).catch(err => { onError(err); })
+});
+
+// Returns service status
+app.get("/service", (req, res) => {
+    // TODO add more later, for now get database size
+    dbManager.calculateDatabaseSize().then(sizes => {
+        res.status(200);
+        res.end(JSON.stringify({ sizes }));
+    }).catch(err => {
+        res.status(500);
+        res.end(JSON.stringify({ error: err }));
+    });
 });
 
 const server = app.listen(process.env.PORT || 3000, () => {
