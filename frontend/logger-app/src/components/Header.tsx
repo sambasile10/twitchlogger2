@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react';
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, TextField, Button } from '@mui/material';
+import { Col } from 'react-bootstrap';
 
 type HeaderProps = {
     channels: string[] // List of channel options
@@ -22,13 +23,30 @@ class Header extends React.Component<HeaderProps, {}> {
     render() {
         return(
             <Fragment>
-                <Autocomplete
-                    disablePortal
-                    id="channel-combo-box"
-                    options={this.props.channels}
-                    sx={{ width: 300 }}
-                    renderInput={(params) => <TextField {... params} label="Channel" />}
-                />
+                <div className='d-flex flex-row justify-content-center'>
+                    <div className='p-2'>
+                        <Autocomplete
+                            disablePortal
+                            id="channel-combo-box"
+                            options={this.props.channels}
+                            sx={{ width: 220 }}
+                            renderInput={(params) => <TextField {... params} label="Channel" />}
+                        />
+                    </div>
+                    <div className='p-2'>
+                        <TextField
+                            id="username-text-field"
+                            label="Username"
+                            variant="filled"
+                            fullWidth={true}
+                        />
+                    </div>
+                    <div className='p-2'>
+                        <Button style={{ height: '100%' }} id="search-button" variant='contained'>
+                            Search
+                        </Button>
+                    </div>
+                </div>
             </Fragment>
         )
     }

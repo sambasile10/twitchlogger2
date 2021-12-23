@@ -11,11 +11,20 @@ class App extends React.Component<{}, {}> {
 
     render() {
         return (
-          <Container fluid>
-            <Row className="search-row">
-              <Header channels={['sodapoppin','nyanners']} />
-            </Row>
-          </Container>
+          <div>
+            <Container fluid>
+              <Row id="header-row" className="search-row">
+                <Header channels={['sodapoppin','nyanners']} />
+              </Row>
+            </Container>
+            <div className='container-bg'>
+              <Container>
+                <Row lg={12}>
+                  yoyoyoyoo
+                </Row>
+              </Container>
+            </div>
+          </div>
         );
     }
 }
