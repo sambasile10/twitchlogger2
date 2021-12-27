@@ -2,6 +2,7 @@ import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import './App.css';
 import Header from './components/Header';
+import Log from './components/Log';
 
 class App extends React.Component<{}, {}> {
 
@@ -17,13 +18,7 @@ class App extends React.Component<{}, {}> {
                 <Header channels={['sodapoppin','nyanners']} />
               </Row>
             </Container>
-            <div className='container-bg'>
-              <Container>
-                <Row lg={12}>
-                  yoyoyoyoo
-                </Row>
-              </Container>
-            </div>
+            <Log />
           </div>
         );
     }
