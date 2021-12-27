@@ -1,5 +1,5 @@
 import express from 'express';
-import { DBManager } from './DBManager';
+import { DBManager, QueryParameters } from './DBManager';
 import * as dotenv from "dotenv";
 import { ConfigManager } from './Config';
 import { ChatClient } from './ChatClient';
@@ -44,7 +44,18 @@ app.get("/chat/:channel/", (req, res) => {
     // Fetch user data from given username
     twitchClient.fetchUserData(username, false).then(user_data => {
         // Call DBManager to query with given options
-        dbManager.queryMessages(channel, user_data.id).then(messages => {
+        const options: QueryParameters = {
+            channel: channel, 
+            user_id: user_data.id, 
+        };
+
+        if(req.query.limit)
+            options.limit = Number(req.query.limit)
+
+        if(req.query.skip)
+            options.skip = Number(req.query.skip)
+
+        dbManager.queryMessages(options).then(messages => {
             const duration = performance.now() - metrics_start; // Calculate duration
             const response = { // Build response
                 metrics: { duration: duration },

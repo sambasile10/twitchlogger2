@@ -2,6 +2,7 @@ import { channel } from 'diagnostics_channel';
 import pgPromise, { ColumnSet } from 'pg-promise';
 import { IConnectionParameters } from 'pg-promise/typescript/pg-subset';
 import { ILogLevel, Logger } from 'tslog';
+import { runInThisContext } from 'vm';
 import { ConfigManager } from './Config';
 
 // Extend pg-promise with custom functions for code clarity
@@ -22,6 +23,14 @@ export declare interface Message {
 export declare interface DBMessage {
     user_id: string,
     message: string
+};
+
+// Query parameters for searching a user's messages in a channel
+export declare interface QueryParameters {
+    channel: string, // Channel name to query in, required
+    user_id: string, // Twitch ID of user, required
+    limit?: number, // Maximum number of messages returned, optional
+    skip?: number, // Offset of entries to search, optional
 };
 
 // Postgres configuration for dev environment
@@ -175,7 +184,7 @@ export class DBManager {
 
     // TODO more options - limit query, between dates, etc
     // Query messages in database
-    async queryMessages(channel: string, user_id: string): Promise<Message[]> {
+    /*async queryMessages(channel: string, user_id: string): Promise<Message[]> {
         return new Promise<Message[]>((resolve, reject) => {
             this.db.getMessages(channel, user_id).then(res => {
                 resolve(res);
@@ -183,6 +192,29 @@ export class DBManager {
                 this.log.error(`Failed to query messages in channel '${channel}' for user with ID '${user_id}'.`);
                 reject(err);
             });
+        });
+    }*/
+
+    async queryMessages(options: QueryParameters): Promise<Message[]> {
+        return new Promise<Message[]>((resolve, reject) => {
+            let query = '';
+            if(options.limit == null || options.skip == null) {
+                // Use standard query
+                query = `SELECT timestamp, message FROM ${options.channel} WHERE user_id LIKE '${options.user_id}' ORDER BY id DESC;`;
+            } else {
+                // Use advanced query
+                query = `SELECT timestamp, message FROM ${options.channel} WHERE user_id LIKE '${options.user_id}' `
+                    + `ORDER BY id DESC OFFSET ${options.skip} ROWS FETCH NEXT ${options.limit} ROWS ONLY;`;
+            }
+
+            // Execute query
+            this.db.any(query).then(res => {
+                resolve(res);
+            }).catch(err => {
+                this.log.error(`Failed to query messages in channel '${options.channel}' for user with ID '${options.user_id}'.`);
+                reject(err);
+            });
+            
         });
     }
 
