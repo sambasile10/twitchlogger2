@@ -1,7 +1,12 @@
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
+import { Message } from '../App';
 
-class Log extends React.Component<{}, {}> {
+type LogProps = {
+  messages: Message[]
+};
+
+class Log extends React.Component<LogProps, {}> {
     constructor(props: any) {
         super(props);
     }
@@ -9,10 +14,14 @@ class Log extends React.Component<{}, {}> {
     render() {
         return (
             <div className='container-bg'>
-              <Container>
-                <Row lg={12}>
-                  yoyoyoyoo
-                </Row>
+              <Container fluid className='log-scroll'>
+                {
+                  this.props.messages.map(message => (
+                    <Row lg={12}>
+                      <Col>{ message.timestamp } { message.message }</Col>
+                    </Row>
+                  ))
+                }
               </Container>
             </div>
         );
