@@ -158,6 +158,17 @@ app.delete("/chat/:channel", (req, res) => {
     }).catch(err => { onError(err); })
 });
 
+// Get a list of tracked channels
+app.get("/channels", (req, res) => {
+    const response = {
+        channels: ConfigManager.config.channels
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200);
+    res.end(JSON.stringify(response));
+});
+
 // Returns service status
 app.get("/service", (req, res) => {
     // TODO add more later, for now get database size
@@ -170,6 +181,6 @@ app.get("/service", (req, res) => {
     });
 });
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 8080, () => {
     console.log(`Express running → PORT ${server.address()}`);
 });

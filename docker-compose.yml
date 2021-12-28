@@ -1,0 +1,30 @@
+services:
+  logger:
+    container_name: logger
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    env_file: ./backend/.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/config:/usr/share/logger/
+  
+  db:
+    image: "postgres"
+    env_file: ./backend/.env
+    volumes:
+      - chat_db:/var/lib/postgresql/data/
+
+  web:
+    container_name: web
+    build:
+      context: ./frontend/logger-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+
+volumes:
+  chat_db: {}

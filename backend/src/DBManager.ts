@@ -182,19 +182,6 @@ export class DBManager {
         });
     }
 
-    // TODO more options - limit query, between dates, etc
-    // Query messages in database
-    /*async queryMessages(channel: string, user_id: string): Promise<Message[]> {
-        return new Promise<Message[]>((resolve, reject) => {
-            this.db.getMessages(channel, user_id).then(res => {
-                resolve(res);
-            }).catch(err => {
-                this.log.error(`Failed to query messages in channel '${channel}' for user with ID '${user_id}'.`);
-                reject(err);
-            });
-        });
-    }*/
-
     async queryMessages(options: QueryParameters): Promise<Message[]> {
         return new Promise<Message[]>((resolve, reject) => {
             let query = '';

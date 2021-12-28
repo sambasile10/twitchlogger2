@@ -15,6 +15,10 @@ const dummyMessages: Message[] = [
     { timestamp: '2021-12-27T23:40:14.099Z', message: 'Pog' },
 ];
 
+const dummyChannels: string[] = [
+  'sodapoppin', 'nyanners'
+];
+
 class App extends React.Component<{}, {}> {
 
     constructor(props: any) {
@@ -26,7 +30,7 @@ class App extends React.Component<{}, {}> {
           <div>
             <Container fluid>
               <Row id="header-row" className="search-row">
-                <Header channels={['sodapoppin','nyanners']} />
+                <Header channels={dummyChannels} />
               </Row>
             </Container>
             <Log messages={dummyMessages}/>

@@ -7,13 +7,40 @@ type HeaderProps = {
 };
 
 type HeaderState = {
+    channels: string[]
     selectedChannel: string // Currently selected channel
+};
+
+const default_state = {
+    channels: [ 'not ready' ],
+    selectedChannel: ''
 };
 
 class Header extends React.Component<HeaderProps, {}> {
 
     constructor(props: any) {
         super(props);
+
+        this.setState(default_state);
+    }
+
+    componentDidMount() {
+        // Load channel list from backend
+        fetch('/channels')
+            .then(res => res.json())
+            .then((result) => {
+                this.setState({
+                    channels: result.channels,
+                    selectedChannel: ''
+                });
+            },
+            (error) => {
+                this.setState({
+                    channels: [ 'error', ':((' ],
+                    selectedChannel: ''
+                });
+            }
+        )
     }
 
     onChangeChannel = (selected: any) => {
@@ -28,7 +55,7 @@ class Header extends React.Component<HeaderProps, {}> {
                         <Autocomplete
                             disablePortal
                             id="channel-combo-box"
-                            options={this.props.channels}
+                            options={this.state.channels}
                             sx={{ width: 220 }}
                             renderInput={(params) => <TextField {... params} label="Channel" />}
                         />
