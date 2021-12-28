@@ -3,13 +3,13 @@ import { Autocomplete, TextField, Button } from '@mui/material';
 import { Col } from 'react-bootstrap';
 
 type HeaderProps = {
-    channels: string[] // List of channel options
+    onSearchCallback: (channel: string, username: string) => void // Callback to search logs
 };
 
 type HeaderState = {
-    channels: string[]
+    channels: string[] // List of channel options
     selectedChannel: string // Currently selected channel
-    usernameValue: string
+    usernameValue: string // Value of username text field
 };
 
 const default_state: HeaderState = {
@@ -56,6 +56,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
 
     onSearch = () => {
         console.log("channel: " + this.state.selectedChannel + ", username: " + this.state.usernameValue);
+        this.props.onSearchCallback(this.state.selectedChannel, this.state.usernameValue);
     }
 
     render() {
