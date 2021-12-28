@@ -9,11 +9,13 @@ type HeaderProps = {
 type HeaderState = {
     channels: string[]
     selectedChannel: string // Currently selected channel
+    usernameValue: string
 };
 
 const default_state: HeaderState = {
     channels: [ 'not ready' ],
-    selectedChannel: ''
+    selectedChannel: '',
+    usernameValue: ''
 };
 
 class Header extends React.Component<HeaderProps, HeaderState> {
@@ -44,8 +46,16 @@ class Header extends React.Component<HeaderProps, HeaderState> {
         )
     }
 
-    onChangeChannel = (selected: any) => {
-        this.setState({ selectedChannel: selected });
+    onChangeChannel = (event: any, value: any) => {
+        this.setState({ selectedChannel: value });
+    }
+
+    onChangeUsername = (e: any) => {
+        this.setState({ usernameValue: e.target.value });
+    }
+
+    onSearch = () => {
+        console.log("channel: " + this.state.selectedChannel + ", username: " + this.state.usernameValue);
     }
 
     render() {
@@ -59,6 +69,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                             options={this.state.channels}
                             sx={{ width: 220 }}
                             renderInput={(params) => <TextField {... params} label="Channel" />}
+                            onChange={this.onChangeChannel}
                         />
                     </div>
                     <div className='p-2'>
@@ -67,10 +78,12 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                             label="Username"
                             variant="filled"
                             fullWidth={true}
+                            value={this.state.usernameValue}
+                            onChange={this.onChangeUsername}
                         />
                     </div>
                     <div className='p-2'>
-                        <Button style={{ height: '100%' }} id="search-button" variant='contained'>
+                        <Button style={{ height: '100%' }} id="search-button" variant='contained' onClick={this.onSearch}>
                             Search
                         </Button>
                     </div>
