@@ -11,17 +11,17 @@ type HeaderState = {
     selectedChannel: string // Currently selected channel
 };
 
-const default_state = {
+const default_state: HeaderState = {
     channels: [ 'not ready' ],
     selectedChannel: ''
 };
 
-class Header extends React.Component<HeaderProps, {}> {
+class Header extends React.Component<HeaderProps, HeaderState> {
 
     constructor(props: any) {
         super(props);
 
-        this.setState(default_state);
+        this.state = default_state;
     }
 
     componentDidMount() {
@@ -29,6 +29,7 @@ class Header extends React.Component<HeaderProps, {}> {
         fetch('/channels')
             .then(res => res.json())
             .then((result) => {
+                console.log(JSON.stringify(result));
                 this.setState({
                     channels: result.channels,
                     selectedChannel: ''

@@ -164,6 +164,11 @@ app.get("/channels", (req, res) => {
         channels: ConfigManager.config.channels
     };
 
+    // Sanitize string, maybe do this elsewhere
+    for(let i = 0; i < response.channels.length; i++) {
+        response.channels[i] = response.channels[i].replace('#','');
+    }
+
     res.setHeader('Content-Type', 'application/json');
     res.status(200);
     res.end(JSON.stringify(response));

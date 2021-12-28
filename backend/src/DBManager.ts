@@ -173,7 +173,7 @@ export class DBManager {
             const query = this.pgp.helpers.insert(this.messageBuffer.get(channel), this.columnSets.get(channel));
             this.db.none(query).then(res => {
                 this.messageBuffer.set(channel, []); // Reset channel buffer
-                this.log.debug(`Flushed buffer '${channel}' to database.`);
+                //this.log.debug(`Flushed buffer '${channel}' to database.`);
                 resolve();
             }).catch(err => {
                 this.log.error(`Failed to flush buffer '${channel}' to database.`);
