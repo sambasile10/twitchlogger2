@@ -21,6 +21,7 @@ export declare type UserInfoData = {
 type AppState = {
     messages: Message[]
     user_info: UserInfoData
+    subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
 
 const dummyMessages: Message[] = [
@@ -39,7 +40,8 @@ const dummyUserInfo: UserInfoData = {
 
 const default_state: AppState = {
     messages: dummyMessages,
-    user_info: dummyUserInfo
+    user_info: dummyUserInfo,
+    subelements_visible: false
 };
 
 class App extends React.Component<{}, AppState> {
@@ -60,10 +62,9 @@ class App extends React.Component<{}, AppState> {
                 profile_image_url: result.userdata.profile_image_url,
                 account_creation_date: result.userdata.created_at
               };
-              this.setState({ messages: result.messages, user_info: newUserData });
+              this.setState({ messages: result.messages, user_info: newUserData, subelements_visible: true });
           }, (error) => {
-
-              this.setState({ messages: [{ timestamp: '', message: 'error' }] });
+              this.setState({ messages: [{ timestamp: '', message: 'error' }], subelements_visible: false });
           });
     }
 
@@ -76,7 +77,7 @@ class App extends React.Component<{}, AppState> {
               </Row>
             </Container>
             <Log messages={this.state.messages}/>
-            <UserInfo user_data={this.state.user_info} />
+            <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
           </div>
         );
     }
