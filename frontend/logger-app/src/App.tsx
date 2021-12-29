@@ -1,16 +1,26 @@
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
+import { resourceLimits } from 'worker_threads';
 import './App.css';
 import Header from './components/Header';
 import Log from './components/Log';
+import UserInfo from './components/UserInfo';
 
 export declare type Message = {
   timestamp: string,
   message: string
 };
 
+export declare type UserInfoData = {
+  user_id: string
+  view_count: string
+  profile_image_url: string
+  account_creation_date: string
+};
+
 type AppState = {
     messages: Message[]
+    user_info: UserInfoData
 };
 
 const dummyMessages: Message[] = [
@@ -23,8 +33,13 @@ const dummyChannels: string[] = [
   'sodapoppin', 'nyanners'
 ];
 
+const dummyUserInfo: UserInfoData = {
+    user_id: '', view_count: '', profile_image_url:'', account_creation_date: ''
+};
+
 const default_state: AppState = {
-    messages: dummyMessages
+    messages: dummyMessages,
+    user_info: dummyUserInfo
 };
 
 class App extends React.Component<{}, AppState> {
@@ -39,8 +54,15 @@ class App extends React.Component<{}, AppState> {
         fetch(`/chat/${channel}?username=${username}&limit=50&skip=0`)
           .then(res => res.json())
           .then((result) => {
-              this.setState({ messages: result.messages });
+              const newUserData: UserInfoData = {
+                user_id: result.userdata.id,
+                view_count: result.userdata.view_count,
+                profile_image_url: result.userdata.profile_image_url,
+                account_creation_date: result.userdata.created_at
+              };
+              this.setState({ messages: result.messages, user_info: newUserData });
           }, (error) => {
+
               this.setState({ messages: [{ timestamp: '', message: 'error' }] });
           });
     }
@@ -54,6 +76,7 @@ class App extends React.Component<{}, AppState> {
               </Row>
             </Container>
             <Log messages={this.state.messages}/>
+            <UserInfo user_data={this.state.user_info} />
           </div>
         );
     }
