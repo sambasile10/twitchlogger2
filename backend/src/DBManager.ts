@@ -9,6 +9,7 @@ import { ConfigManager } from './Config';
 interface IExtensions {
     getMessages(channel: string, userID: string): Promise<Message[]>;
     createChannel(channel: string): Promise<void>;
+    getTablesForChannel(channel: string): Promise<any>
     sizeOfTable(table: string): Promise<string>;
 };
 
@@ -29,6 +30,8 @@ export declare interface DBMessage {
 export declare interface QueryParameters {
     channel: string, // Channel name to query in, required
     user_id: string, // Twitch ID of user, required
+    month: number, // Month period to search within, required
+    year: number, // Year of month to search within, required
     limit?: number, // Maximum number of messages returned, optional
     skip?: number, // Offset of entries to search, optional
 };
@@ -52,6 +55,10 @@ const options: pgPromise.IInitOptions<IExtensions> = {
             return obj.none(`CREATE TABLE IF NOT EXISTS ${channel} ( id SERIAL, user_id VARCHAR(10), timestamp TIMESTAMP NOT NULL DEFAULT NOW(), message VARCHAR(500), PRIMARY KEY(id) ); `);
         }
 
+        obj.getTablesForChannel = (channel) => {
+            return obj.any(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_NAME LIKE '${channel}%'; `);
+        }
+
         obj.sizeOfTable = (table) => {
             return obj.one(`SELECT pg_total_relation_size('${table}');`)
         }
@@ -68,6 +75,10 @@ export class DBManager {
 
     private log: Logger = new Logger({ name: "DBManager" });
 
+    // Current month and year, built to seperate database tables
+    private currentMonth: number;
+    private currentYear: number;
+
     // Database connection
     private pgp = pgPromise(options);
     private db; // Load database URL from environment
@@ -76,7 +87,7 @@ export class DBManager {
     private messageBuffer: Map<string, DBMessage[]>; 
 
     // pgp ColumnSets, generated once - defines columns in a table
-    private columnSets: Map<String, pgPromise.ColumnSet>;
+    private columnSets: Map<string, pgPromise.ColumnSet>;
 
     constructor() {}
 
@@ -89,6 +100,11 @@ export class DBManager {
             // Change SSL default if in production
             this.pgp.pg.defaults.ssl = { rejectUnauthorized: false };
         }
+
+        // Get current datetime
+        const currentDate = new Date();
+        this.currentMonth = currentDate.getUTCMonth() + 1;
+        this.currentYear = currentDate.getUTCFullYear();
 
         this.db = this.pgp(dbConfig as IConnectionParameters);
 
@@ -110,10 +126,11 @@ export class DBManager {
     async addChannel(channel: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // Create channel table if it doesn't exist
-            this.db.createChannel(channel).then(res => {
+            const table_name: string = this.getCurrentTableName(channel);
+            this.db.createChannel(table_name).then(res => {
                 this.messageBuffer.set(channel, []); // Create new buffer for channel
-                this.columnSets.set(channel, new this.pgp.helpers.ColumnSet([ 'user_id', 'message' ], { table: channel })); // Create ColumnSet
-                this.log.info(`Registered channel '${channel}' with database.`);
+                this.columnSets.set(channel, new this.pgp.helpers.ColumnSet([ 'user_id', 'message' ], { table: table_name })); // Create ColumnSet
+                this.log.info(`Registered channel '${channel}' with table ${table_name}.`);
                 resolve();
             }).catch(err => {
                 this.log.error(`Failed to create table for channel '${channel}'.`);
@@ -132,8 +149,11 @@ export class DBManager {
             };
             
             if(drop_table) {
+                this.log.warn("Support for dropping tables has been temporarily disabled.");
+                resolve();
+
                 // Drop table from database
-                this.db.none(`DROP TABLE IF EXISTS ${channel};`).then(res => {
+                /*this.db.none(`DROP TABLE IF EXISTS ${channel};`).then(res => {
                     this.log.info(`Dropped table by name '${channel}'.`);
                     onRemove(); // On success remove associated data
                     resolve();
@@ -144,7 +164,7 @@ export class DBManager {
             } else {
                 onRemove(); // Delete buffer and column set
                 this.log.info(`Dropped '${channel}' without dropping table.`);
-                resolve(); // Don't delete data, just resolve
+                resolve(); // Don't delete data, just resolve*/
             }
         });
     }
@@ -184,13 +204,15 @@ export class DBManager {
 
     async queryMessages(options: QueryParameters): Promise<Message[]> {
         return new Promise<Message[]>((resolve, reject) => {
+            const table_name: string = this.getTableName(options.channel, options.month, options.year);
             let query = '';
+
             if(options.limit == null || options.skip == null) {
                 // Use standard query
-                query = `SELECT timestamp, message FROM ${options.channel} WHERE user_id LIKE '${options.user_id}' ORDER BY id DESC;`;
+                query = `SELECT timestamp, message FROM ${table_name} WHERE user_id LIKE '${options.user_id}' ORDER BY id DESC;`;
             } else {
                 // Use advanced query
-                query = `SELECT timestamp, message FROM ${options.channel} WHERE user_id LIKE '${options.user_id}' `
+                query = `SELECT timestamp, message FROM ${table_name} WHERE user_id LIKE '${options.user_id}' `
                     + `ORDER BY id DESC OFFSET ${options.skip} ROWS FETCH NEXT ${options.limit} ROWS ONLY;`;
             }
 
@@ -227,6 +249,24 @@ export class DBManager {
                 reject(err);
             });
         });
+    }
+
+    async getAllTables(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.db.any(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables; `).then(res => {
+                resolve(res);
+            }).catch(err => {
+                reject(err);
+            })
+        });
+    }
+
+    private getTableName(channel: string, month: number, year: number): string {
+        return String(channel.toLowerCase() + "_" + year + "_" + month);
+    }
+
+    private getCurrentTableName(channel: string): string {
+        return this.getTableName(channel, this.currentMonth, this.currentYear);
     }
 
 };

@@ -25,7 +25,7 @@ dbManager.init().then(res => {
 let twitchClient: TwitchClient = new TwitchClient();
 twitchClient.checkAPIConnection().then(res => {}); // TODO complete promise
 
-// Query chat logs in a given channel
+// Query chat logs in a given channel in a given month
 app.get("/chat/:channel/", (req, res) => {
     const metrics_start = performance.now(); // Start metrics timer
     let channel: string = req.params.channel.toLowerCase(); // Channel to query in
@@ -43,10 +43,16 @@ app.get("/chat/:channel/", (req, res) => {
 
     // Fetch user data from given username
     twitchClient.fetchUserData(username, false).then(user_data => {
+        if(req.query.month == null || req.query.year == null) {
+            onError("Missing parameters (month and year are required)");
+        }
+
         // Call DBManager to query with given options
         const options: QueryParameters = {
             channel: channel, 
             user_id: user_data.id, 
+            month: Number(req.query.month),
+            year: Number(req.query.year)
         };
 
         if(req.query.limit)
@@ -180,6 +186,16 @@ app.get("/service", (req, res) => {
     dbManager.calculateDatabaseSize().then(sizes => {
         res.status(200);
         res.end(JSON.stringify({ sizes }));
+    }).catch(err => {
+        res.status(500);
+        res.end(JSON.stringify({ error: err }));
+    });
+});
+
+app.get("/tables", (req, res) => {
+    dbManager.getAllTables().then(result => {
+        res.status(200);
+        res.end(JSON.stringify({ result }));
     }).catch(err => {
         res.status(500);
         res.end(JSON.stringify({ error: err }));
