@@ -85,11 +85,15 @@ export class TwitchClient {
             }).catch(err => {
                 this.log.debug(JSON.stringify(err));
                 // Handle fetch error, if the response status is 401 (unauthorized) then fetch a new bearer token
-                this.log.error(`Failed to fetch user data for '${username}' with status: ${err.response!.status}.`);
-                if(err.response!.status === 401 && fetch_token) {
-                    // Fetch new bearer token
-                    this.log.info("Fetching new bearer token...");
-                    this.fetchBearerToken();
+                if(err.response) {
+                    this.log.error(`Failed to fetch user data for '${username}' with status: ${err.response!.status}.`);
+                    if(err.response!.status === 401 && fetch_token) {
+                        // Fetch new bearer token
+                        this.log.info("Fetching new bearer token...");
+                        this.fetchBearerToken();
+                    }
+                } else {
+                    this.log.error(`Failed to fetch user data '${username}', the server did not give a response. (This likely means the user doesn't exist)`);
                 }
 
                 reject(err);
