@@ -10,3 +10,9 @@
   overflow-y: scroll;
   overflow-x: scroll;
 }
+
+.page-controls {
+  background-color: aquamarine;
+  margin-right: 10%;
+  float: right;
+}

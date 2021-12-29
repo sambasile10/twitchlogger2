@@ -4,6 +4,7 @@ import { resourceLimits } from 'worker_threads';
 import './App.css';
 import Header from './components/Header';
 import Log from './components/Log';
+import PageControls from './components/PageControls';
 import UserInfo from './components/UserInfo';
 
 export declare type Message = {
@@ -77,7 +78,17 @@ class App extends React.Component<{}, AppState> {
               </Row>
             </Container>
             <Log messages={this.state.messages}/>
-            <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
+            <Container fluid>
+              <Row>
+                <Col>
+                  <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
+                </Col>
+                <Col>
+                  <div className="page-controls"><PageControls visible={this.state.subelements_visible} /></div>
+                </Col>
+              </Row>
+            </Container>
+            
           </div>
         );
     }
