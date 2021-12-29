@@ -83,7 +83,6 @@ export class TwitchClient {
                 this.log.debug(`Fetched user data for '${username}' with user ID: '${userData.id}'`);
                 resolve(userData);
             }).catch(err => {
-                this.log.debug(JSON.stringify(err));
                 // Handle fetch error, if the response status is 401 (unauthorized) then fetch a new bearer token
                 if(err.response) {
                     this.log.error(`Failed to fetch user data for '${username}' with status: ${err.response!.status}.`);
@@ -104,7 +103,7 @@ export class TwitchClient {
     // Test API connection, returns true if connection works
     async checkAPIConnection(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.fetchUserData('twitch', false) // Try to get user data for 'twitch'
+            this.fetchUserData('twitch', true) // Try to get user data for 'twitch'
             .then(res => {
                 // Successfully fetched data
                 this.log.info("Connected to Twitch API successfully.");

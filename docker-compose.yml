@@ -7,6 +7,7 @@ services:
     depends_on:
       - db
     env_file: ./backend/.env
+    restart: on-failure
     ports:
       - "8080:8080"
     volumes:
@@ -15,11 +16,13 @@ services:
   db:
     image: "postgres"
     env_file: ./backend/.env
+    restart: on-failure
     volumes:
       - chat_db:/var/lib/postgresql/data/
 
   web:
     container_name: web
+    restart: on-failure
     build:
       context: ./frontend/logger-app
       dockerfile: Dockerfile
