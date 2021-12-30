@@ -1,3 +1,4 @@
+import { channel } from 'diagnostics_channel';
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import { resourceLimits } from 'worker_threads';
@@ -19,9 +20,17 @@ export declare type UserInfoData = {
   account_creation_date: string
 };
 
+export declare type DateTuple = {
+  month: number,
+  year: number
+};
+
 type AppState = {
-    messages: Message[]
-    user_info: UserInfoData
+    messages: Message[] // Messages to be displayed in the Log component
+    channel: string // Currently selected channel
+    channels: string[] // List of channels being tracked
+    timeframes: DateTuple[] // List of avalible month/year combinations for selected channel
+    user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
 
@@ -41,6 +50,9 @@ const dummyUserInfo: UserInfoData = {
 
 const default_state: AppState = {
     messages: dummyMessages,
+    channel: '',
+    channels: [],
+    timeframes: [],
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -53,8 +65,27 @@ class App extends React.Component<{}, AppState> {
         this.state = default_state;
     }
 
+    componentDidMount() {
+        // Load channel list from backend
+        fetch('/channels')
+            .then(res => res.json())
+            .then((result) => {
+                console.log(JSON.stringify(result));
+                this.setState({
+                  channels: result.channels
+                });
+            },
+            (error) => {
+                this.setState({
+                    channels: [ 'error', ':((' ],
+                });
+            }
+        )
+    }
+
     performSearch = (channel: string, username: string) => {
-        fetch(`/chat/${channel}?username=${username}&limit=50&skip=0`)
+        const date = new Date();
+        fetch(`/chat/${channel}?username=${username}&month=${date.getUTCMonth()+1}&year=${date.getUTCFullYear()}`)
           .then(res => res.json())
           .then((result) => {
               const newUserData: UserInfoData = {
@@ -63,9 +94,20 @@ class App extends React.Component<{}, AppState> {
                 profile_image_url: result.userdata.profile_image_url,
                 account_creation_date: result.userdata.created_at
               };
-              this.setState({ messages: result.messages, user_info: newUserData, subelements_visible: true });
+              this.setState({ 
+                messages: result.messages,
+                channel: channel,
+                timeframes: this.getTimeframes(result.tables),
+                user_info: newUserData,
+                subelements_visible: true 
+              });
           }, (error) => {
-              this.setState({ messages: [{ timestamp: '', message: 'error' }], subelements_visible: false });
+              this.setState({ 
+                messages: [{ timestamp: '', message: 'error' }],
+                channel: channel,
+                timeframes: [],
+                subelements_visible: false 
+              });
           });
     }
 
@@ -74,7 +116,7 @@ class App extends React.Component<{}, AppState> {
           <div>
             <Container fluid>
               <Row id="header-row" className="search-row">
-                <Header onSearchCallback={this.performSearch} />
+                <Header channels={this.state.channels} onSearchCallback={this.performSearch} />
               </Row>
             </Container>
             <Log messages={this.state.messages}/>
@@ -91,6 +133,20 @@ class App extends React.Component<{}, AppState> {
             
           </div>
         );
+    }
+
+    private getTimeframes(tables: any): DateTuple[] {
+        let tuples: DateTuple[] = [];
+        for(let i = 0; i < tables.length; i++) {
+            const split = String(tables[i].table_name).split('_');
+            tuples.push({
+                year: Number(split[1]),
+                month: Number(split[2])
+            } as DateTuple);
+            console.log(tables[i]);
+        }
+        
+        return tuples;
     }
 }
 

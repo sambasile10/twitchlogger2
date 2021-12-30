@@ -3,17 +3,16 @@ import { Autocomplete, TextField, Button } from '@mui/material';
 import { Col } from 'react-bootstrap';
 
 type HeaderProps = {
+    channels: string[] // List of channel options
     onSearchCallback: (channel: string, username: string) => void // Callback to search logs
 };
 
 type HeaderState = {
-    channels: string[] // List of channel options
     selectedChannel: string // Currently selected channel
     usernameValue: string // Value of username text field
 };
 
 const default_state: HeaderState = {
-    channels: [ 'not ready' ],
     selectedChannel: '',
     usernameValue: ''
 };
@@ -24,26 +23,6 @@ class Header extends React.Component<HeaderProps, HeaderState> {
         super(props);
 
         this.state = default_state;
-    }
-
-    componentDidMount() {
-        // Load channel list from backend
-        fetch('/channels')
-            .then(res => res.json())
-            .then((result) => {
-                console.log(JSON.stringify(result));
-                this.setState({
-                    channels: result.channels,
-                    selectedChannel: ''
-                });
-            },
-            (error) => {
-                this.setState({
-                    channels: [ 'error', ':((' ],
-                    selectedChannel: ''
-                });
-            }
-        )
     }
 
     onChangeChannel = (event: any, value: any) => {
@@ -67,7 +46,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                         <Autocomplete
                             disablePortal
                             id="channel-combo-box"
-                            options={this.state.channels}
+                            options={this.props.channels}
                             sx={{ width: 220 }}
                             renderInput={(params) => <TextField {... params} label="Channel" />}
                             onChange={this.onChangeChannel}

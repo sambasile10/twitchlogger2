@@ -251,9 +251,9 @@ export class DBManager {
         });
     }
 
-    async getAllTables(): Promise<any> {
+    async getTablesByChannel(channel: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            this.db.any(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables; `).then(res => {
+            this.db.any(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_NAME LIKE '${channel}%'; `).then(res => {
                 resolve(res);
             }).catch(err => {
                 reject(err);

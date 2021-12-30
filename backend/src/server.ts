@@ -62,15 +62,18 @@ app.get("/chat/:channel/", (req, res) => {
             options.skip = Number(req.query.skip)
 
         dbManager.queryMessages(options).then(messages => {
-            const duration = performance.now() - metrics_start; // Calculate duration
-            const response = { // Build response
-                metrics: { duration: duration },
-                userdata: user_data,
-                messages: messages
-            };
+            dbManager.getTablesByChannel(channel).then(tables => {
+                const duration = performance.now() - metrics_start; // Calculate duration
+                const response = { // Build response
+                    metrics: { duration: duration },
+                    userdata: user_data,
+                    tables: tables,
+                    messages: messages
+                };
 
-            res.status(200);
-            res.end(JSON.stringify(response));
+                res.status(200);
+                res.end(JSON.stringify(response));
+            }).catch(err => { onError(err); })
         }).catch(err => { onError(err); });
     }).catch(err => { onError(err); });
 });
@@ -192,10 +195,14 @@ app.get("/service", (req, res) => {
     });
 });
 
-app.get("/tables", (req, res) => {
-    dbManager.getAllTables().then(result => {
+app.get("/tables/:channel", (req, res) => {
+    if(!req.params.channel)
+        res.sendStatus(400);
+    
+    const channel: string = String(req.params.channel);
+    dbManager.getTablesByChannel(channel).then(result => {
         res.status(200);
-        res.end(JSON.stringify({ result }));
+        res.end(JSON.stringify({ tables: result }));
     }).catch(err => {
         res.status(500);
         res.end(JSON.stringify({ error: err }));
