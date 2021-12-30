@@ -1,16 +1,21 @@
-import { Button } from '@mui/material';
+import { Button, MenuItem, Select } from '@mui/material';
 import React, { Fragment } from 'react';
+import { DateTuple } from '../App';
 
 type PageControlsProps = {
-    visible: boolean,
+    timeframes: DateTuple[] // Timeframes of selected channel in tuple form
+    options: string[] // Readable form of timeframes tuples array
+    visible: boolean, // Controls the visibility of the element
 };
 
 type PageControlsState = {
-    page_number: number
+    selected: number // Currently selected option
+    timeframe: DateTuple // Currently selected timeframe
 };
 
 const default_state: PageControlsState = {
-    page_number: 1
+    selected: 0,
+    timeframe: { month: 0, year: 0 }
 };
 
 class PageControls extends React.Component<PageControlsProps, PageControlsState> {
@@ -20,34 +25,41 @@ class PageControls extends React.Component<PageControlsProps, PageControlsState>
         this.state = default_state;
     }
 
-    onPreviousPage = () => {
-        if(this.state.page_number == 1) {
-            return;
+    // Called when component props are modified
+    /*shouldComponentUpdate() {
+        let options: string[] = [];
+        for(let i = 0; i < this.props.timeframes.length; i++) {
+            const tuple: DateTuple = this.props.timeframes[i];
+            options.push(String(tuple.month + "/" + tuple.year));
         }
+        
+        this.setState({ options: options });
+    }*/
 
-        this.setState({ page_number: this.state.page_number-1 });
-    }
-
-    onNextPage = () => {
-        this.setState({ page_number: this.state.page_number+1 });
-    }
+    onChangeTimeframe = (event: any) => {
+        this.setState({
+            selected: event.target.value
+        });
+    }   
 
     render() {
         return (
             <Fragment>
                 <div className='d-flex flex-row justify-content-end'>
                     <div className='p-2'>
-                        <Button id="prev-button" variant='contained' onClick={this.onPreviousPage}>
-                           Previous
-                        </Button>
-                    </div>
-                    <div className='p-2'>
-                        <Button id="next-button" variant='contained' onClick={this.onNextPage}>
-                           Next
-                        </Button>
-                    </div>
-                    <div className='p-2'>
-                        <p>{ this.state.page_number }</p>
+                        <Select
+                            labelId="timeframe-select-label"
+                            id="timeframe-select"
+                            value={this.state.selected}
+                            label="Timeframe"
+                            onChange={this.onChangeTimeframe}
+                        >
+                            {
+                                this.props.timeframes.map((tuple, index) => (
+                                    <MenuItem value={index}>{ this.props.options[index] }</MenuItem>
+                                ))
+                            }
+                        </Select>
                     </div>
                 </div>
             </Fragment>

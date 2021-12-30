@@ -30,6 +30,7 @@ type AppState = {
     channel: string // Currently selected channel
     channels: string[] // List of channels being tracked
     timeframes: DateTuple[] // List of avalible month/year combinations for selected channel
+    time_options: string[] // Readable version of the timeframes tuples array
     user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
@@ -52,7 +53,8 @@ const default_state: AppState = {
     messages: dummyMessages,
     channel: '',
     channels: [],
-    timeframes: [],
+    timeframes: [{ month: 0, year: 0 }],
+    time_options: ['0/0'],
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -94,10 +96,13 @@ class App extends React.Component<{}, AppState> {
                 profile_image_url: result.userdata.profile_image_url,
                 account_creation_date: result.userdata.created_at
               };
+
+              let timeframes: DateTuple[] = this.getTimeframes(result.tables);
               this.setState({ 
                 messages: result.messages,
                 channel: channel,
-                timeframes: this.getTimeframes(result.tables),
+                timeframes: timeframes,
+                time_options: this.formatTimeOptions(timeframes),
                 user_info: newUserData,
                 subelements_visible: true 
               });
@@ -126,7 +131,12 @@ class App extends React.Component<{}, AppState> {
                   <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
                 </Col>
                 <Col>
-                  <div className="page-controls"><PageControls visible={this.state.subelements_visible} /></div>
+                  <div className="page-controls">
+                    <PageControls 
+                      timeframes={this.state.timeframes} 
+                      options={this.state.time_options}
+                      visible={this.state.subelements_visible} />
+                  </div>
                 </Col>
               </Row>
             </Container>
@@ -147,6 +157,16 @@ class App extends React.Component<{}, AppState> {
         }
         
         return tuples;
+    }
+
+    private formatTimeOptions(tuples: DateTuple[]): string[] {
+        let options: string[] = [];
+        for(let i = 0; i < tuples.length; i++) {
+            const tuple: DateTuple = tuples[i];
+            options.push(String(tuple.month + "/" + tuple.year));
+        }
+
+        return options;
     }
 }
 
