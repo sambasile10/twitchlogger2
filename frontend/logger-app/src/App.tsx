@@ -7,7 +7,7 @@ import Header from './components/Header';
 import Log from './components/Log';
 import PageControls from './components/PageControls';
 import UserInfo from './components/UserInfo';
-import { getInitialDateTuple, getInitialTimeframeOption } from './Util';
+import * as util from './Util';
 
 export declare type Message = {
   timestamp: string,
@@ -73,8 +73,8 @@ class App extends React.Component<{}, AppState> {
     componentDidMount() {
         // Load initial timeframe option
         this.setState({
-            timeframes: [ getInitialDateTuple() ],
-            time_options: [ getInitialTimeframeOption() ]
+            timeframes: [ util.getInitialDateTuple() ],
+            time_options: [ util.getInitialTimeframeOption() ]
         });
 
         // Load channel list from backend
@@ -107,12 +107,12 @@ class App extends React.Component<{}, AppState> {
                 account_creation_date: result.userdata.created_at
               };
 
-              let timeframes: DateTuple[] = this.getTimeframes(result.tables);
+              let timeframes: DateTuple[] = util.getTimeframes(result.tables);
               this.setState({ 
                 messages: result.messages,
                 channel: channel,
                 timeframes: timeframes,
-                time_options: this.formatTimeOptions(timeframes),
+                time_options: util.formatTimeOptions(timeframes),
                 user_info: newUserData,
                 subelements_visible: true 
               });
@@ -163,30 +163,6 @@ class App extends React.Component<{}, AppState> {
             
           </div>
         );
-    }
-
-    private getTimeframes(tables: any): DateTuple[] {
-        let tuples: DateTuple[] = [];
-        for(let i = 0; i < tables.length; i++) {
-            const split = String(tables[i].table_name).split('_');
-            tuples.push({
-                year: Number(split[1]),
-                month: Number(split[2])
-            } as DateTuple);
-            console.log(tables[i]);
-        }
-        
-        return tuples;
-    }
-
-    private formatTimeOptions(tuples: DateTuple[]): string[] {
-        let options: string[] = [];
-        for(let i = 0; i < tuples.length; i++) {
-            const tuple: DateTuple = tuples[i];
-            options.push(String(tuple.month + "/" + tuple.year));
-        }
-
-        return options;
     }
 }
 

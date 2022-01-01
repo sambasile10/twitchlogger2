@@ -26,17 +26,6 @@ class PageControls extends React.Component<PageControlsProps, PageControlsState>
         this.state = default_state;
     }
 
-    // Called when component props are modified
-    /*shouldComponentUpdate() {
-        let options: string[] = [];
-        for(let i = 0; i < this.props.timeframes.length; i++) {
-            const tuple: DateTuple = this.props.timeframes[i];
-            options.push(String(tuple.month + "/" + tuple.year));
-        }
-        
-        this.setState({ options: options });
-    }*/
-
     onChangeTimeframe = (event: any) => {
         this.setState({
             selected: event.target.value
