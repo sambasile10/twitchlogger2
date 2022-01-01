@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Log from './components/Log';
 import PageControls from './components/PageControls';
 import UserInfo from './components/UserInfo';
+import { getInitialDateTuple, getInitialTimeframeOption } from './Util';
 
 export declare type Message = {
   timestamp: string,
@@ -31,6 +32,7 @@ type AppState = {
     channels: string[] // List of channels being tracked
     timeframes: DateTuple[] // List of avalible month/year combinations for selected channel
     time_options: string[] // Readable version of the timeframes tuples array
+    selected_timeframe: number // Option # of the selected timeframe
     user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
@@ -55,6 +57,7 @@ const default_state: AppState = {
     channels: [],
     timeframes: [{ month: 0, year: 0 }],
     time_options: ['0/0'],
+    selected_timeframe: 0,
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -68,6 +71,12 @@ class App extends React.Component<{}, AppState> {
     }
 
     componentDidMount() {
+        // Load initial timeframe option
+        this.setState({
+            timeframes: [ getInitialDateTuple() ],
+            time_options: [ getInitialTimeframeOption() ]
+        });
+
         // Load channel list from backend
         fetch('/channels')
             .then(res => res.json())
@@ -86,8 +95,9 @@ class App extends React.Component<{}, AppState> {
     }
 
     performSearch = (channel: string, username: string) => {
-        const date = new Date();
-        fetch(`/chat/${channel}?username=${username}&month=${date.getUTCMonth()+1}&year=${date.getUTCFullYear()}`)
+        const option: DateTuple = this.state.timeframes[this.state.selected_timeframe];
+        console.log("Option:", option.month, "/", option.year);
+        fetch(`/chat/${channel}?username=${username}&month=${option.month}&year=${option.year}`)
           .then(res => res.json())
           .then((result) => {
               const newUserData: UserInfoData = {
@@ -116,6 +126,14 @@ class App extends React.Component<{}, AppState> {
           });
     }
 
+    onChangeTimeframe = (option: number) => {
+        this.setState({
+            selected_timeframe: option
+        });
+
+        console.log(option);
+    }
+
     render() {
         return (
           <div>
@@ -125,21 +143,23 @@ class App extends React.Component<{}, AppState> {
               </Row>
             </Container>
             <Log messages={this.state.messages}/>
-            <Container fluid>
-              <Row>
-                <Col>
-                  <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
-                </Col>
-                <Col>
-                  <div className="page-controls">
+            <div className="page-footer">
+              <Container fluid>
+                <Row>
+                  <Col my-auto md={6}>
+                    <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
+                  </Col>
+                  <Col md={6}>
                     <PageControls 
                       timeframes={this.state.timeframes} 
                       options={this.state.time_options}
-                      visible={this.state.subelements_visible} />
-                  </div>
-                </Col>
-              </Row>
-            </Container>
+                      visible={this.state.subelements_visible} 
+                      onChangeTimeframe={this.onChangeTimeframe}
+                    />
+                  </Col>
+                </Row>
+              </Container>
+            </div>
             
           </div>
         );

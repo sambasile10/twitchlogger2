@@ -11,8 +11,12 @@
   overflow-x: scroll;
 }
 
+.page-footer {
+  background-color: beige;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
 .page-controls {
   background-color: aquamarine;
-  margin-right: 10%;
-  float: right;
 }

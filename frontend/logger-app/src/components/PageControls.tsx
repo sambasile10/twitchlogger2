@@ -6,6 +6,7 @@ type PageControlsProps = {
     timeframes: DateTuple[] // Timeframes of selected channel in tuple form
     options: string[] // Readable form of timeframes tuples array
     visible: boolean, // Controls the visibility of the element
+    onChangeTimeframe: (option: number) => void // Callback to update selected timeframe in parent state
 };
 
 type PageControlsState = {
@@ -40,12 +41,14 @@ class PageControls extends React.Component<PageControlsProps, PageControlsState>
         this.setState({
             selected: event.target.value
         });
+        
+        this.props.onChangeTimeframe(event.target.value);
     }   
 
     render() {
         return (
             <Fragment>
-                <div className='d-flex flex-row justify-content-end'>
+                <div className='d-flex flex-row justify-content-center'>
                     <div className='p-2'>
                         <Select
                             labelId="timeframe-select-label"
