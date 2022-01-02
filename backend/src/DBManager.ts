@@ -251,6 +251,27 @@ export class DBManager {
         });
     }
 
+    async calculateSizeOfChannel(channel: string): Promise<[string, number][]> {
+        return new Promise<[string, number][]>((resolve, reject) => {
+            this.getTablesByChannel(channel).then(tables => {
+                let tasks: Promise<number>[] = [];
+                //this.log.debug(tables);
+                for(let i = 0; i < tables.length; i++) {
+                    const table = tables[i];
+                    tasks.push(this.db.sizeOfTable(table.table_name));
+                }
+
+                let tuples: [string, number][] = [];
+                Promise.all(tasks).then(res => {
+                    tables.forEach((tbl, index) => {
+                        tuples.push([tbl, res[index]]);
+                    });
+                    resolve(tuples);
+                }).catch(err => { reject(err); })
+            }).catch(err => { reject(err); });
+        });
+    }
+
     async getTablesByChannel(channel: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             this.db.any(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_NAME LIKE '${channel}%'; `).then(res => {

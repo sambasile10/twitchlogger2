@@ -183,16 +183,21 @@ app.get("/channels", (req, res) => {
     res.end(JSON.stringify(response));
 });
 
-// Returns service status
-app.get("/service", (req, res) => {
-    // TODO add more later, for now get database size
-    dbManager.calculateDatabaseSize().then(sizes => {
+// Return size of DB for a given channel
+app.get("/service/:channel", (req, res) => {
+    let channel: string = req.params.channel.toLowerCase();
+    if(!ConfigManager.config.channels.includes(channel)) {
+        res.status(400);
+        res.end(JSON.stringify({ err: `Channel '${channel}' does not exist in configuration.` }));
+    }
+
+    dbManager.calculateSizeOfChannel(channel).then(data => {
         res.status(200);
-        res.end(JSON.stringify({ sizes }));
+        res.end(JSON.stringify({ service: data }));
     }).catch(err => {
         res.status(500);
         res.end(JSON.stringify({ error: err }));
-    });
+    })
 });
 
 app.get("/tables/:channel", (req, res) => {
