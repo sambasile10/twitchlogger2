@@ -23,6 +23,12 @@ export function getTimeframes(tables: any): DateTuple[] {
         } as DateTuple);
         console.log(tables[i]);
     }
+
+    tuples.sort((a: DateTuple, b: DateTuple) => {
+        return new Date(String('01' + '/' + b.month + '/' + b.year)).getTime() - new Date(String('01' + '/' + a.month + '/' + a.year)).getTime();
+    })
+
+    console.log(tuples);
     
     return tuples;
 }
