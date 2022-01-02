@@ -37,8 +37,7 @@ app.get("/chat/:channel/", (req, res) => {
         const duration = performance.now() - metrics_start; // Stop metrics
 
         // Send error
-        res.status(401);
-        res.end(JSON.stringify({ metrics: { duration: duration }, error: err }));
+        return res.status(401).send(JSON.stringify({ metrics: { duration: duration }, error: err }));
     };
 
     // Fetch user data from given username
@@ -71,8 +70,7 @@ app.get("/chat/:channel/", (req, res) => {
                     messages: messages
                 };
 
-                res.status(200);
-                res.end(JSON.stringify(response));
+                return res.status(200).send(JSON.stringify(response));
             }).catch(err => { onError(err); })
         }).catch(err => { onError(err); });
     }).catch(err => { onError(err); });
@@ -85,8 +83,7 @@ app.post("/chat/:channel", (req, res) => {
     // Check if configuration already contains channel
     if(ConfigManager.config.channels.includes(channel)) {
         // Channel already logged, return error
-        res.status(400);
-        res.end(JSON.stringify({
+        return res.status(400).send(JSON.stringify({
             error: `Channel '${channel}' is already included in the configuration.`
         }));
     }
@@ -98,15 +95,14 @@ app.post("/chat/:channel", (req, res) => {
         ConfigManager.notifyUpdate();
 
         // Send error
-        res.end(500);
-        res.send(JSON.stringify({
+        return res.status(500).send(JSON.stringify({
             error: err
         }));
     };
 
     // Called on success
     const onSuccess = () => {
-        res.sendStatus(200);
+        return res.sendStatus(200);
     };
 
     // First join the channel with the chat client
@@ -130,8 +126,7 @@ app.delete("/chat/:channel", (req, res) => {
     // Check if channel is in configuration
     if(ConfigManager.config.channels.includes(channel) == false) {
         // Channel is not in config, return error
-        res.status(400);
-        res.end(JSON.stringify({
+        return res.status(400).send(JSON.stringify({
             error: `Channel '${channel}' is not in the configuration.`
         }));
     }
@@ -143,15 +138,14 @@ app.delete("/chat/:channel", (req, res) => {
         ConfigManager.notifyUpdate();
 
         // Send error
-        res.status(500);
-        res.end(JSON.stringify({
+        return res.status(500).send(JSON.stringify({
             error: err
         }));
     };
 
     // Called on success
     const onSuccess = () => {
-        res.sendStatus(200);
+        return res.sendStatus(200);
     };
 
     // First leave the channel chat
@@ -187,30 +181,27 @@ app.get("/channels", (req, res) => {
 app.get("/service/:channel", (req, res) => {
     let channel: string = req.params.channel.toLowerCase();
     if(!ConfigManager.config.channels.includes(channel)) {
-        res.status(400);
-        res.end(JSON.stringify({ err: `Channel '${channel}' does not exist in configuration.` }));
+        return res.status(400).send(JSON.stringify({
+             err: `Channel '${channel}' does not exist in configuration.` 
+        }));
     }
 
     dbManager.calculateSizeOfChannel(channel).then(data => {
-        res.status(200);
-        res.end(JSON.stringify({ service: data }));
+        return res.status(200).send(JSON.stringify({ service: data }));
     }).catch(err => {
-        res.status(500);
-        res.end(JSON.stringify({ error: err }));
+        return res.status(500).send(JSON.stringify({ error: err }));
     })
 });
 
 app.get("/tables/:channel", (req, res) => {
     if(!req.params.channel)
-        res.sendStatus(400);
+        return res.sendStatus(400);
     
     const channel: string = String(req.params.channel);
     dbManager.getTablesByChannel(channel).then(result => {
-        res.status(200);
-        res.end(JSON.stringify({ tables: result }));
+        return res.status(200).send(JSON.stringify({ tables: result }));
     }).catch(err => {
-        res.status(500);
-        res.end(JSON.stringify({ error: err }));
+        return res.status(500).send(JSON.stringify({ error: err }));
     });
 });
 
