@@ -33,6 +33,7 @@ type AppState = {
     timeframes: DateTuple[] // List of avalible month/year combinations for selected channel
     time_options: string[] // Readable version of the timeframes tuples array
     selected_timeframe: number // Option # of the selected timeframe
+    metrics_time: number // Execution time of the last query
     user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
@@ -58,6 +59,7 @@ const default_state: AppState = {
     timeframes: [{ month: 0, year: 0 }],
     time_options: ['0/0'],
     selected_timeframe: 0,
+    metrics_time: 0,
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -114,6 +116,7 @@ class App extends React.Component<{}, AppState> {
                 timeframes: timeframes,
                 time_options: util.formatTimeOptions(timeframes),
                 user_info: newUserData,
+                metrics_time: result.metrics.duration,
                 subelements_visible: true 
               });
           }, (error) => {
@@ -147,7 +150,7 @@ class App extends React.Component<{}, AppState> {
               <Container fluid>
                 <Row>
                   <Col my-auto md={6}>
-                    <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
+                    <UserInfo user_data={this.state.user_info} metrics_time={this.state.metrics_time} visible={this.state.subelements_visible} />
                   </Col>
                   <Col md={6}>
                     <PageControls 
