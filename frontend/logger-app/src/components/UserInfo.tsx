@@ -4,7 +4,8 @@ import { UserInfoData } from '../App';
 type UserInfoProps = {
     visible: boolean,
     user_data: UserInfoData,
-    metrics_time: number
+    metrics_time: number,
+    results: number
 };
 
 class UserInfo extends React.Component<UserInfoProps, {}> {
@@ -30,6 +31,9 @@ class UserInfo extends React.Component<UserInfoProps, {}> {
                         </div>
                         <div id="metics-duration-field" className='p-2'>
                             <p><b>Execution Time:</b> { this.props.metrics_time.toFixed(2) }ms</p>
+                        </div>
+                        <div id="metics-duration-field" className='p-2'>
+                            <p><b>Results:</b> { this.props.results }</p>
                         </div>
                     </div>
                 </Fragment>

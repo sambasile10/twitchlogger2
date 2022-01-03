@@ -67,6 +67,7 @@ app.get("/chat/:channel/", (req, res) => {
                     metrics: { duration: duration },
                     userdata: user_data,
                     tables: tables,
+                    results: messages.length,
                     messages: messages
                 };
 

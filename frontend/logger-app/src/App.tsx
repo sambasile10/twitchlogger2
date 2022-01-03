@@ -34,6 +34,7 @@ type AppState = {
     time_options: string[] // Readable version of the timeframes tuples array
     selected_timeframe: number // Option # of the selected timeframe
     metrics_time: number // Execution time of the last query
+    number_results: number // Number of messages displayed
     user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
@@ -60,6 +61,7 @@ const default_state: AppState = {
     time_options: ['0/0'],
     selected_timeframe: 0,
     metrics_time: 0,
+    number_results: 0,
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -117,6 +119,7 @@ class App extends React.Component<{}, AppState> {
                 time_options: util.formatTimeOptions(timeframes),
                 user_info: newUserData,
                 metrics_time: result.metrics.duration,
+                number_results: result.results,
                 subelements_visible: true 
               });
           }, (error) => {
@@ -149,10 +152,10 @@ class App extends React.Component<{}, AppState> {
             <div className="page-footer">
               <Container fluid>
                 <Row>
-                  <Col my-auto md={6}>
-                    <UserInfo user_data={this.state.user_info} metrics_time={this.state.metrics_time} visible={this.state.subelements_visible} />
+                  <Col my-auto md={10}>
+                    <UserInfo user_data={this.state.user_info} metrics_time={this.state.metrics_time} visible={this.state.subelements_visible} results={this.state.number_results} />
                   </Col>
-                  <Col md={6}>
+                  <Col md={2}>
                     <PageControls 
                       timeframes={this.state.timeframes} 
                       options={this.state.time_options}
