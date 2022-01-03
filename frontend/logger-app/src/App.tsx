@@ -156,6 +156,7 @@ class App extends React.Component<{}, AppState> {
                     <PageControls 
                       timeframes={this.state.timeframe_data.timeframes} 
                       options={this.state.timeframe_data.options}
+                      channel={this.state.channel}
                       visible={this.state.subelements_visible} 
                       onChangeTimeframe={this.onChangeTimeframe}
                     />

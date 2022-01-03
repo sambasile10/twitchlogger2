@@ -5,6 +5,7 @@ import { DateTuple } from '../App';
 type PageControlsProps = {
     timeframes: DateTuple[] // Timeframes of selected channel in tuple form
     options: string[] // Readable form of timeframes tuples array
+    channel: string // Used to check if channel was changed on component update
     visible: boolean, // Controls the visibility of the element
     onChangeTimeframe: (option: number) => void // Callback to update selected timeframe in parent state
 };
@@ -26,13 +27,13 @@ class PageControls extends React.Component<PageControlsProps, PageControlsState>
         this.state = default_state;
     }
 
-    /*componentDidUpdate(prevProps: PageControlsProps) {
-        if(this.props.options !== prevProps.options) {
+    componentDidUpdate(prevProps: PageControlsProps) {
+        if(this.props.channel !== prevProps.channel) {
             this.setState({
                 selected: 0
             });
         }
-    }*/
+    }
 
     onChangeTimeframe = (event: any) => {
         this.setState({
