@@ -11,6 +11,7 @@ interface IExtensions {
     createChannel(channel: string): Promise<void>;
     getTablesForChannel(channel: string): Promise<any>
     sizeOfTable(table: string): Promise<string>;
+    dropTable(table: string): Promise<void>;
 };
 
 // Message object for end user consumption
@@ -60,7 +61,11 @@ const options: pgPromise.IInitOptions<IExtensions> = {
         }
 
         obj.sizeOfTable = (table) => {
-            return obj.one(`SELECT pg_total_relation_size('${table}');`)
+            return obj.one(`SELECT pg_total_relation_size('${table}');`);
+        }
+
+        obj.dropTable = (table) => {
+            return obj.none(`DROP TABLE IF EXISTS ${table}; `);
         }
     }
 };
@@ -146,25 +151,29 @@ export class DBManager {
                 // Remove buffer and column set
                 this.messageBuffer.delete(channel);
                 this.columnSets.delete(channel);
+                this.log.info(`Dropped columns and buffer for channel '${channel}'.`);
+                resolve();
             };
             
             if(drop_table) {
-                this.log.warn("Support for dropping tables has been temporarily disabled.");
-                resolve();
+                this.getTablesByChannel(channel).then(tables => {
+                    let tasks: Promise<void>[] = [];
+                    tables.forEach((table, index) => {
+                        tasks.push(this.db.dropTable(table.table_name));
+                    });
 
-                // Drop table from database
-                /*this.db.none(`DROP TABLE IF EXISTS ${channel};`).then(res => {
-                    this.log.info(`Dropped table by name '${channel}'.`);
-                    onRemove(); // On success remove associated data
-                    resolve();
+                    Promise.all(tasks).then(res => {
+                        this.log.info(`Dropped tables for channel '${channel}'.`);
+                        onRemove();
+                    }).catch(err => {
+                        this.log.warn(`Failed to drop tables for channel '${channel}'. `);
+                        reject(err);
+                    });
                 }).catch(err => {
-                    this.log.warn(`Failed to drop by name '${channel}'.`);
                     reject(err);
                 });
             } else {
-                onRemove(); // Delete buffer and column set
-                this.log.info(`Dropped '${channel}' without dropping table.`);
-                resolve(); // Don't delete data, just resolve*/
+                onRemove();
             }
         });
     }

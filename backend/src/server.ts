@@ -134,9 +134,11 @@ app.delete("/chat/:channel", (req, res) => {
 
     // Anonymous function to be called on error
     const onError = (err) => {
-        // Add channel back to config
-        ConfigManager.config.channels.push(channel);
-        ConfigManager.notifyUpdate();
+        // Add channel back to config if needed
+        if(!ConfigManager.config.channels.includes(channel)) {
+            ConfigManager.config.channels.push(channel);
+            ConfigManager.notifyUpdate();
+        }
 
         // Send error
         return res.status(500).send(JSON.stringify({
