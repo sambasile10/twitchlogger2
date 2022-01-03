@@ -1,11 +1,11 @@
-import { DateTuple } from "./App";
+import { DateTuple, TimeframeData } from "./App";
 
-export function getInitialTimeframeOption(): string {
+function getInitialTimeframeOption(): string {
     const now = new Date();
     return String((now.getUTCMonth()+1) + "/" + now.getUTCFullYear());
 }
 
-export function getInitialDateTuple(): DateTuple {
+function getInitialDateTuple(): DateTuple {
     const now = new Date();
     return ({
         month: now.getUTCMonth()+1,
@@ -13,7 +13,16 @@ export function getInitialDateTuple(): DateTuple {
     } as DateTuple);
 }
 
-export function getTimeframes(tables: any): DateTuple[] {
+export function getInitialTimeframeData(): TimeframeData {
+    let data: TimeframeData = {
+        timeframes: [ getInitialDateTuple() ],
+        options: [ getInitialTimeframeOption() ]
+    };
+
+    return data;
+}
+
+function getTimeframes(tables: any): DateTuple[] {
     let tuples: DateTuple[] = [];
     for(let i = 0; i < tables.length; i++) {
         const split = String(tables[i].table_name).split('_');
@@ -33,7 +42,7 @@ export function getTimeframes(tables: any): DateTuple[] {
     return tuples;
 }
 
-export function formatTimeOptions(tuples: DateTuple[]): string[] {
+function formatTimeOptions(tuples: DateTuple[]): string[] {
     let options: string[] = [];
     for(let i = 0; i < tuples.length; i++) {
         const tuple: DateTuple = tuples[i];
@@ -41,4 +50,13 @@ export function formatTimeOptions(tuples: DateTuple[]): string[] {
     }
     
     return options;
+}
+
+export function getTimeframeData(tables: any): TimeframeData {
+    let timeframes: DateTuple[] = getTimeframes(tables);
+    let options: string[] = formatTimeOptions(timeframes);
+    return ({
+        timeframes: timeframes,
+        options: options
+    } as TimeframeData);
 }

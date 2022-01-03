@@ -10,58 +10,57 @@ import UserInfo from './components/UserInfo';
 import * as util from './Util';
 
 export declare type Message = {
-  timestamp: string,
-  message: string
+    timestamp: string,
+    message: string
 };
 
+// Information from the current query
 export declare type UserInfoData = {
-  user_id: string
-  view_count: string
-  profile_image_url: string
-  account_creation_date: string
+    user_id: string // Twitch ID of user
+    view_count: string // View count of user
+    profile_image_url: string // Profile image of user
+    account_creation_date: string // Account creation date of user
+    metrics_time: number // Execution time of the query
+    number_results: number // Number of messages from the query
 };
 
+// Used for determining which table to query
 export declare type DateTuple = {
-  month: number,
-  year: number
+    month: number,
+    year: number
+};
+
+// Package of data involving timeframes
+export declare type TimeframeData = {
+    timeframes: DateTuple[], // List of avalible month/year combinations for selected channel
+    options: string[] // Readable version of the timeframes tuples array
 };
 
 type AppState = {
     messages: Message[] // Messages to be displayed in the Log component
     channel: string // Currently selected channel
     channels: string[] // List of channels being tracked
-    timeframes: DateTuple[] // List of avalible month/year combinations for selected channel
-    time_options: string[] // Readable version of the timeframes tuples array
+    timeframe_data: TimeframeData // Timeframe data
     selected_timeframe: number // Option # of the selected timeframe
-    metrics_time: number // Execution time of the last query
-    number_results: number // Number of messages displayed
     user_info: UserInfoData // User info to be displayed 
     subelements_visible: boolean // Show subelements (PageControls, UserInfo)
 };
 
-const dummyMessages: Message[] = [
-    { timestamp: '2021-12-28T00:15:45.754Z', message: 'MODS blupes' },
-    { timestamp: '2021-12-27T23:56:47.964Z', message: 'Bing bang boom EZ' },
-    { timestamp: '2021-12-27T23:40:14.099Z', message: 'Pog' },
-];
-
-const dummyChannels: string[] = [
-  'sodapoppin', 'nyanners'
-];
-
 const dummyUserInfo: UserInfoData = {
-    user_id: '', view_count: '', profile_image_url:'', account_creation_date: ''
+    user_id: '', view_count: '', profile_image_url:'', account_creation_date: '',
+    metrics_time: 0, number_results: 0
+};
+
+const dummyTimeframeData: TimeframeData = {
+    timeframes:  [{ month: 0, year:0 }], options: ['0/0']
 };
 
 const default_state: AppState = {
-    messages: dummyMessages,
+    messages: [],
     channel: '',
     channels: [],
-    timeframes: [{ month: 0, year: 0 }],
-    time_options: ['0/0'],
+    timeframe_data: dummyTimeframeData,
     selected_timeframe: 0,
-    metrics_time: 0,
-    number_results: 0,
     user_info: dummyUserInfo,
     subelements_visible: false
 };
@@ -77,8 +76,7 @@ class App extends React.Component<{}, AppState> {
     componentDidMount() {
         // Load initial timeframe option
         this.setState({
-            timeframes: [ util.getInitialDateTuple() ],
-            time_options: [ util.getInitialTimeframeOption() ]
+            timeframe_data: util.getInitialTimeframeData()
         });
 
         // Load channel list from backend
@@ -99,7 +97,7 @@ class App extends React.Component<{}, AppState> {
     }
 
     performSearch = (channel: string, username: string) => {
-        const option: DateTuple = this.state.timeframes[this.state.selected_timeframe];
+        const option: DateTuple = this.state.timeframe_data.timeframes[this.state.selected_timeframe];
         console.log("Option:", option.month, "/", option.year);
         fetch(`/chat/${channel}?username=${username}&month=${option.month}&year=${option.year}`)
           .then(res => res.json())
@@ -108,25 +106,24 @@ class App extends React.Component<{}, AppState> {
                 user_id: result.userdata.id,
                 view_count: result.userdata.view_count,
                 profile_image_url: result.userdata.profile_image_url,
-                account_creation_date: result.userdata.created_at
+                account_creation_date: result.userdata.created_at,
+                metrics_time: result.metrics.duration,
+                number_results: result.results
               };
 
-              let timeframes: DateTuple[] = util.getTimeframes(result.tables);
+              let newTimeframeData: TimeframeData = util.getTimeframeData(result.tables);
               this.setState({ 
                 messages: result.messages,
                 channel: channel,
-                timeframes: timeframes,
-                time_options: util.formatTimeOptions(timeframes),
+                timeframe_data: newTimeframeData,
                 user_info: newUserData,
-                metrics_time: result.metrics.duration,
-                number_results: result.results,
                 subelements_visible: true 
               });
           }, (error) => {
               this.setState({ 
                 messages: [{ timestamp: '', message: 'error' }],
                 channel: channel,
-                timeframes: [],
+                timeframe_data: util.getInitialTimeframeData(),
                 subelements_visible: false 
               });
           });
@@ -153,12 +150,12 @@ class App extends React.Component<{}, AppState> {
               <Container fluid>
                 <Row>
                   <Col my-auto md={10}>
-                    <UserInfo user_data={this.state.user_info} metrics_time={this.state.metrics_time} visible={this.state.subelements_visible} results={this.state.number_results} />
+                    <UserInfo user_data={this.state.user_info} visible={this.state.subelements_visible} />
                   </Col>
                   <Col md={2}>
                     <PageControls 
-                      timeframes={this.state.timeframes} 
-                      options={this.state.time_options}
+                      timeframes={this.state.timeframe_data.timeframes} 
+                      options={this.state.timeframe_data.options}
                       visible={this.state.subelements_visible} 
                       onChangeTimeframe={this.onChangeTimeframe}
                     />
